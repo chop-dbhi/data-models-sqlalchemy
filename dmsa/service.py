@@ -38,15 +38,16 @@ def erd_route(model, version):
     ext = request.args.get('format') or 'png'
 
     filename = '%s_%s.%s' % (model, version, ext)
+    filepath = '/'.join([app.instance_path, filename])
 
     try:
-        os.mkdir('static')
+        os.mkdir(app.instance_path)
     except OSError:
         pass
 
-    erd([model, version, 'static/' + filename])
+    erd([model, version, filepath])
 
-    return send_file('static/' + filename)
+    return send_file(filepath)
 
 
 def main(argv=None):
@@ -73,7 +74,8 @@ def main(argv=None):
 
     args = docopt(usage, argv=argv, version='0.3')
 
-    app.run(host=args['--host'], port=args['--port'], debug=args['--debug'])
+    app.run(host=args['--host'], port=int(args['--port']),
+            debug=args['--debug'])
 
 
 if __name__ == '__main__':
