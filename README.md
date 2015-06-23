@@ -7,7 +7,7 @@ SQLAlchemy models and DDL and ERD generation for chop-dbhi/data-models style JSO
 In your shell, hopefully within a virtualenv:
 
 ```sh
-pip install dmsa  # Pending push to PyPi
+pip install dmsa
 ```
 
 In python:
@@ -55,7 +55,7 @@ The following DBMS dialects are supported when generating DDL:
 Retrieve the image:
 
 ```sh
-docker pull dbhi/data-models-sqlalchemy  # Pending push to Docker Hub
+docker pull dbhi/data-models-sqlalchemy
 ```
 
 Usage for DDL generation:
@@ -106,7 +106,7 @@ pip install pyodbc               # for MS SQL Server DDL generation
 Install the data-models-sqlalchemy python package:
 
 ```sh
-pip install dmsa  # Pending push to PyPi
+pip install dmsa
 ```
 
 Usage for DDL generation:
