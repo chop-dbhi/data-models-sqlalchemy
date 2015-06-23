@@ -2,4 +2,5 @@ Dockerfile
 LICENSE
 *egg-info
 *pyc
+Dockerrun.aws.json
 instance

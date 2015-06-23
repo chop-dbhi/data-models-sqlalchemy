@@ -2,6 +2,8 @@
 
 SQLAlchemy models and DDL and ERD generation for chop-dbhi/data-models style JSON endpoints.
 
+Web service available at http://dmsa.a0b.io/
+
 ## SQLAlchemy Models
 
 In your shell, hopefully within a virtualenv:
