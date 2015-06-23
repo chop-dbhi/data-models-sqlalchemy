@@ -30,6 +30,7 @@ kwargs = {
     'install_requires': install_requires,
     'download_url': ('https://github.com/chop-dbhi/'
                      'data-models-sqlalchemy/tarball/0.2'),
+    'keywords': ['healthcare', 'data models', 'SQLAlchemy', 'DDL', 'ERD'],
     'classifiers': [
         'Development Status :: 4 - Beta',
         'Programming Language :: Python',
