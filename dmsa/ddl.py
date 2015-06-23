@@ -77,7 +77,7 @@ def main(argv=None):
     # Ignore command name if called from command line.
     argv = argv or sys.argv[1:]
 
-    args = docopt(usage, argv=argv, version='0.2')
+    args = docopt(usage, argv=argv, version='0.3')
 
     url = args['--url'] or get_url(args['<model>'], args['<version>'])
     model_json = json.loads(urllib.urlopen(url).read())

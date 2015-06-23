@@ -18,7 +18,7 @@ install_requires = [
 
 kwargs = {
     'name': 'dmsa',
-    'version': '0.2',
+    'version': '0.3',
     'author': 'The Children\'s Hospital of Philadelphia',
     'author_email': 'cbmisupport@email.chop.edu',
     'url': 'https://github.com/chop-dbhi/data-models-sqlalchemy',
@@ -29,7 +29,7 @@ kwargs = {
     'packages': find_packages(),
     'install_requires': install_requires,
     'download_url': ('https://github.com/chop-dbhi/'
-                     'data-models-sqlalchemy/tarball/0.2'),
+                     'data-models-sqlalchemy/tarball/v0.3'),
     'keywords': ['healthcare', 'data models', 'SQLAlchemy', 'DDL', 'ERD'],
     'classifiers': [
         'Development Status :: 4 - Beta',

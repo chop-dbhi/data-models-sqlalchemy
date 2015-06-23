@@ -71,7 +71,7 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv[1:]
 
-    args = docopt(usage, argv=argv, version='0.2')
+    args = docopt(usage, argv=argv, version='0.3')
 
     app.run(host=args['--host'], port=args['--port'], debug=args['--debug'])
 
