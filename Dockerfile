@@ -39,4 +39,4 @@ RUN pip install /app/
 
 # Set up run environment.
 WORKDIR /app
-ENTRYPOINT ["python", "/app/dmsa/main.py"]
+ENTRYPOINT ["dmsa"]

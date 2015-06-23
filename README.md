@@ -79,19 +79,12 @@ docker run --rm dbhi/data-models-sqlalchemy erd -h
 Generate i2b2 PEDSnet V2 ERD (the image will land at `./erd/i2b2_pedsnet_v2_erd.png`):
 
 ```sh
-docker run --rm -v $(pwd)/erd:/app/erd dbhi/data-models-sqlalchemy erd i2b2_pedsnet v2 /app/erd/i2b2_pedsnet_v2_erd.png
+docker run --rm -v $(pwd)/erd:/erd dbhi/data-models-sqlalchemy erd i2b2_pedsnet v2 /erd/i2b2_pedsnet_v2_erd.png
 ```
 
 The `graphviz` graphing package supports a number of other output formats, listed here (link pending), which are interpreted from the passed extension.
 
 ### Without Docker:
-
-Clone the repository:
-
-```sh
-git clone https://github.com/chop-dbhi/data-models-sqlalchemy.git
-cd data-models-sqlalchemy
-```
 
 Install the system requirements (see Dockerfile for details):
 
@@ -113,30 +106,30 @@ pip install pyodbc               # for MS SQL Server DDL generation
 Install the data-models-sqlalchemy python package:
 
 ```sh
-pip install dmsa  # Could install locally instead with `pip install .`
+pip install dmsa  # Pending push to PyPi
 ```
 
 Usage for DDL generation:
 
 ```sh
-python dmsa/main.py ddl -h
+dmsa ddl -h
 ```
 
 Generate OMOP V5 DDL for Oracle:
 
 ```sh
-python dmsa/main.py ddl omop v5 oracle
+dmsa ddl omop v5 oracle
 ```
 
 Usage for ERD generation:
 
 ```sh
-python dmsa/main.py erd -h
+dmsa erd -h
 ```
 
 Generate i2b2 PEDSnet V2 ERD (the image will land at `./erd/i2b2_pedsnet_v2_erd.png`):
 
 ```sh
 mkdir erd
-python dmsa/main.py erd i2b2_pedsnet v2 ./erd/i2b2_pedsnet_v2_erd.png
+dmsa erd i2b2_pedsnet v2 ./erd/i2b2_pedsnet_v2_erd.png
 ```
