@@ -39,6 +39,7 @@ COPY . /app/
 RUN pip install /app/
 
 # Set up run environment.
+EXPOSE 80
 WORKDIR /app
 ENTRYPOINT ["dmsa"]
 CMD ["start", "--host=0.0.0.0", "--port=80"]
