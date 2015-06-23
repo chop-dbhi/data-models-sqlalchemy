@@ -2,11 +2,63 @@
 
 import os
 import sys
-from flask import Flask, Response, request, send_file
+from flask import Flask, Response, request, send_file, render_template
 from dmsa.ddl import main as ddl
 from dmsa.erd import main as erd
 
+MODELS = [
+    {
+        'pretty': 'PEDSnet',
+        'name': 'pedsnet',
+        'versions': ['v2', 'v1']
+    },
+    {
+        'pretty': 'i2b2 PEDSnet',
+        'name': 'i2b2_pedsnet',
+        'versions': ['v2']
+    },
+    {
+        'pretty': 'PCORnet',
+        'name': 'pcornet',
+        'versions': ['v3', 'v2', 'v1']
+    },
+    {
+        'pretty': 'OMOP',
+        'name': 'omop',
+        'versions': ['v5', 'v4']
+    },
+    {
+        'pretty': 'i2b2',
+        'name': 'i2b2',
+        'versions': ['v1.7']
+    }
+]
+
+DIALECTS = [
+    {
+        'pretty': 'PostgreSQL',
+        'name': 'postgresql'
+    },
+    {
+        'pretty': 'Oracle',
+        'name': 'oracle'
+    },
+    {
+        'pretty': 'MS SQL Server',
+        'name': 'mssql'
+    },
+    {
+        'pretty': 'MySQL',
+        'name': 'mysql'
+    }
+]
+
 app = Flask('dmsa')
+
+
+@app.route('/')
+def index_route():
+    return render_template('index.html', models=MODELS, dialects=DIALECTS)
 
 
 @app.route('/<model>/<version>/ddl/<dialect>/', defaults={'elements': 'all'})

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Data Models DDL and ERDs</title>
+</head>
+<body>
+    <h1>Data Models DDL and ERDs</h1>
+    <ul>
+    {% for model in models %}
+        <li>{{ model.pretty }}
+            <ul>
+            {% for version in model.versions %}
+                <li>{{ version|upper }}
+                    <ul>
+                        <li><a href="/{{ model.name }}/{{ version }}/erd/">ERD</a></li>
+                        <li>DDL
+                            <ul>
+                            {% for dialect in dialects %}
+                                <li>{{ dialect.pretty }}
+                                    <ul>
+                                        <li><a href="/{{ model.name }}/{{ version }}/ddl/{{ dialect.name }}"/>Full DDL</a></li>
+                                        <li><a href="/{{ model.name }}/{{ version }}/ddl/{{ dialect.name }}/tables"/>Tables Only</a></li>
+                                        <li><a href="/{{ model.name }}/{{ version }}/ddl/{{ dialect.name }}/constraints"/>Constraints Only</a></li>
+                                        <li><a href="/{{ model.name }}/{{ version }}/ddl/{{ dialect.name }}/indexes"/>Indexes Only</a></li>
+                                    </ul>
+                                </li>
+                            {% endfor %}
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            {% endfor %}
+            </ul>
+        </li>
+    {% endfor %}
+    </ul>
+</body>
+</html>
