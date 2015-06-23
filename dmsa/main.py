@@ -1,13 +1,14 @@
 #! /usr/bin/env python
 
 import sys
-from dmsa import ddl, erd
+from dmsa import ddl, erd, service
 
 
 def main():
     usage = """Data Model DDL and ERD Generator
 
-    Usage: main.py (ddl | erd) <args>...
+    Usage: main.py (ddl | erd | start) [<args>...]
+
     """  # noqa
 
     from docopt import docopt
@@ -24,6 +25,8 @@ def main():
         ddl.main(sub_argv)
     elif args['erd']:
         erd.main(sub_argv)
+    elif args['start']:
+        service.main(sub_argv)
 
 
 if __name__ == '__main__':

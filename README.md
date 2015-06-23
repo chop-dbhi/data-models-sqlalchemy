@@ -133,3 +133,45 @@ Generate i2b2 PEDSnet V2 ERD (the image will land at `./erd/i2b2_pedsnet_v2_erd.
 mkdir erd
 dmsa erd i2b2_pedsnet v2 ./erd/i2b2_pedsnet_v2_erd.png
 ```
+
+## Web Service
+
+The web service uses a simple Flask debug server for now. It exposes the following endpoints:
+
+- DDL at `/<model>/<version>/ddl/<dialect>/`
+- DDL for only `table`, `constraint`, or `index` elements at `/<model>/<version>/ddl/<dialect>/<elements>`
+- ERDs at `/<model>/<version>/erd/`
+
+### With Docker:
+
+Usage:
+
+```sh
+docker run  dbhi/data-models-sqlalchemy start -h
+```
+
+Run:
+
+```sh
+docker run dbhi/data-models-sqlalchemy  # Uses Dockerfile defaults of 0.0.0.0:80
+```
+
+### Without Docker:
+
+Install Flask:
+
+```sh
+pip install Flask
+```
+
+Usage:
+
+```sh
+dmsa start -h
+```
+
+Run:
+
+```sh
+dmsa start                              # Uses Flask defaults of 127.0.0.1:5000
+```

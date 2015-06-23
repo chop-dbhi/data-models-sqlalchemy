@@ -27,6 +27,7 @@ RUN apt-get -qq update && \
 COPY requirements.txt /app/
 RUN pip install -r /app/requirements.txt && pip install \
     cx-Oracle==5.1.3 \
+    Flask==0.10.1 \
     psycopg2==2.6 \
     PyMySQL==0.6.6 \
     pyodbc==3.0.10
@@ -40,3 +41,4 @@ RUN pip install /app/
 # Set up run environment.
 WORKDIR /app
 ENTRYPOINT ["dmsa"]
+CMD ["start", "--host=0.0.0.0", "--port=80"]

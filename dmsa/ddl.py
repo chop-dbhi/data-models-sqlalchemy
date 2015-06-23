@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 import sys
 import urllib
 import json
@@ -65,6 +67,8 @@ def main(argv=None):
         -i --xindexes        Exclude indexes from the generated DDL.
         -u URL --url=URL     Retrieve model JSON from this URL instead of the
                              default or environment-variable-passed URL.
+        -r --return          Return DDL as python string object instead of
+                             printing it to stdout.
 
     """  # noqa
 
@@ -83,19 +87,21 @@ def main(argv=None):
 
     engine = create_engine(args['<dialect>'] + '://')
 
+    output = ''
+
     if not args['--xtables']:
 
         for table in metadata.sorted_tables:
 
-            sys.stdout.write(str(CreateTable(table).
-                                 compile(dialect=engine.dialect)).strip())
+            output += str(CreateTable(table).
+                          compile(dialect=engine.dialect)).strip()
 
             # The compile function does not output a statement terminator.
-            sys.stdout.write(';' + '\n\n')
+            output += ';\n\n'
 
     if not args['--xconstraints']:
 
-        sys.stdout.write('\n')
+        output += '\n'
 
         for table in metadata.sorted_tables:
 
@@ -104,26 +110,30 @@ def main(argv=None):
                 # Avoid auto-generated empty primary key constraints.
                 if list(constraint.columns):
 
-                    sys.stdout.write(str(AddConstraint(constraint).
-                                         compile(dialect=engine.dialect)).
-                                     strip())
+                    output += str(AddConstraint(constraint).
+                                  compile(dialect=engine.dialect)).strip()
 
                     # The compile function does not output a terminator.
-                    sys.stdout.write(';' + '\n\n')
+                    output += ';\n\n'
 
     if not args['--xindexes']:
 
-        sys.stdout.write('\n')
+        output += '\n'
 
         for table in metadata.sorted_tables:
 
             for index in table.indexes:
 
-                sys.stdout.write(str(CreateIndex(index).
-                                     compile(dialect=engine.dialect)).strip())
+                output += str(CreateIndex(index).
+                              compile(dialect=engine.dialect)).strip()
 
                 # The compile function does not output a statement terminator.
-                sys.stdout.write(';' + '\n\n')
+                output += ';\n\n'
+
+    if args['--return']:
+        return output
+    else:
+        sys.stdout.write(output)
 
 
 if __name__ == '__main__':
