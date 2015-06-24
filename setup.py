@@ -27,6 +27,7 @@ kwargs = {
     'long_description': long_description,
     'license': license,
     'packages': find_packages(),
+    'package_data': {'dmsa': ['templates/*']},
     'install_requires': install_requires,
     'download_url': ('https://github.com/chop-dbhi/'
                      'data-models-sqlalchemy/tarball/v0.3'),
