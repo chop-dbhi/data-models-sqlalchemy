@@ -93,7 +93,7 @@ def erd_route(model, version):
     filepath = '/'.join([app.instance_path, filename])
 
     try:
-        os.mkdir(app.instance_path)
+        os.makedirs(app.instance_path)
     except OSError:
         pass
 
