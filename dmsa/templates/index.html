@@ -12,7 +12,9 @@
             {% for version in model.versions %}
                 <li>{{ version|upper }}
                     <ul>
+                        {% if erd %}
                         <li><a href="/{{ model.name }}/{{ version }}/erd/">ERD</a></li>
+                        {% endif %}
                         <li>DDL
                             <ul>
                             {% for dialect in dialects %}

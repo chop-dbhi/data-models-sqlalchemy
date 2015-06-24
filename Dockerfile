@@ -42,4 +42,4 @@ RUN pip install /app/
 EXPOSE 80
 WORKDIR /app
 ENTRYPOINT ["dmsa"]
-CMD ["start", "--host=0.0.0.0", "--port=80", "--debug"]
+CMD ["start", "--host=0.0.0.0", "--port=80"]

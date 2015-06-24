@@ -56,9 +56,24 @@ DIALECTS = [
 app = Flask('dmsa')
 
 
-@app.route('/')
-def index_route():
-    return render_template('index.html', models=MODELS, dialects=DIALECTS)
+@app.route('/', defaults={'model': None, 'version': None})
+@app.route('/<model>/', defaults={'version': None})
+@app.route('/<model>/<version>/')
+@app.route('/<model>/<version>/ddl/')
+def index_route(model, version):
+
+    models = MODELS
+
+    if model:
+        models = [m for m in MODELS if m['name'] == model]
+
+    if version:
+        models[0]['versions'] = [version]
+
+    erd = not(request.path.endswith(('ddl', 'ddl/')))
+
+    return render_template('index.html', models=models, dialects=DIALECTS,
+                           erd=erd)
 
 
 @app.route('/<model>/<version>/ddl/<dialect>/', defaults={'elements': 'all'})
