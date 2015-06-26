@@ -1,8 +1,5 @@
-#! /usr/bin/env python
-
 import sys
-import json
-from urllib import urlopen
+import requests
 from eralchemy import render_er
 from sqlalchemy import MetaData
 from dmsa.settings import get_url
@@ -34,7 +31,7 @@ def main(argv=None):
     args = docopt(usage, argv=argv, version='0.3')
 
     url = args['--url'] or get_url(args['<model>'], args['<version>'])
-    model_json = json.loads(urlopen(url).read())
+    model_json = requests.get(url).json()
 
     metadata = MetaData()
     make_model(model_json, metadata)

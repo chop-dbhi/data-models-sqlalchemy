@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import os
 import sys
 from flask import Flask, Response, request, send_file, render_template

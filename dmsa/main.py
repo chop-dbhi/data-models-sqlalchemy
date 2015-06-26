@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 import sys
 from dmsa import ddl, erd, service
 

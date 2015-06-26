@@ -13,7 +13,8 @@ with open('LICENSE', 'r') as f:
 install_requires = [
     'SQLAlchemy==1.0.5',
     'ERAlchemy==0.0.28',
-    'docopt==0.6.2'
+    'docopt==0.6.2',
+    'requests==2.7.0'
 ]
 
 kwargs = {

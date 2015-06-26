@@ -1,8 +1,5 @@
-#! /usr/bin/env python
-
 import sys
-import urllib
-import json
+import requests
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy import Integer, Numeric, String
 from sqlalchemy.ext.compiler import compiles
@@ -90,28 +87,28 @@ def main(argv=None):
     args = docopt(usage, argv=argv, version='0.3')
 
     url = args['--url'] or get_url(args['<model>'], args['<version>'])
-    model_json = json.loads(urllib.urlopen(url).read())
+    model_json = requests.get(url).json()
 
     metadata = MetaData()
     make_model(model_json, metadata)
 
     engine = create_engine(args['<dialect>'] + '://')
 
-    output = ''
+    output = []
 
     if not args['--xtables']:
 
         for table in metadata.sorted_tables:
 
-            output += str(CreateTable(table).
-                          compile(dialect=engine.dialect)).strip()
+            output.append(str(CreateTable(table).
+                          compile(dialect=engine.dialect)).strip())
 
             # The compile function does not output a statement terminator.
-            output += ';\n\n'
+            output.append(';\n\n')
 
     if not args['--xconstraints']:
 
-        output += '\n'
+        output.append('\n')
 
         for table in metadata.sorted_tables:
 
@@ -120,25 +117,27 @@ def main(argv=None):
                 # Avoid auto-generated empty primary key constraints.
                 if list(constraint.columns):
 
-                    output += str(AddConstraint(constraint).
-                                  compile(dialect=engine.dialect)).strip()
+                    output.append(str(AddConstraint(constraint).
+                                  compile(dialect=engine.dialect)).strip())
 
                     # The compile function does not output a terminator.
-                    output += ';\n\n'
+                    output.append(';\n\n')
 
     if not args['--xindexes']:
 
-        output += '\n'
+        output.append('\n')
 
         for table in metadata.sorted_tables:
 
             for index in table.indexes:
 
-                output += str(CreateIndex(index).
-                              compile(dialect=engine.dialect)).strip()
+                output.append(str(CreateIndex(index).
+                              compile(dialect=engine.dialect)).strip())
 
                 # The compile function does not output a statement terminator.
-                output += ';\n\n'
+                output.append(';\n\n')
+
+    output = ''.join(output)
 
     if args['--return']:
         return output
