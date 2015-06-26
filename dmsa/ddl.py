@@ -1,14 +1,12 @@
-#! /usr/bin/env python
-
 import sys
-import urllib
-import json
+import requests
 from sqlalchemy import create_engine, MetaData
-from sqlalchemy import Integer, Numeric
+from sqlalchemy import Integer, Numeric, String
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.schema import CreateTable, AddConstraint, CreateIndex
 from sqlalchemy.schema import (ForeignKeyConstraint, CheckConstraint,
                                UniqueConstraint)
+from dmsa import __version__
 from dmsa.settings import get_url
 from dmsa.makers import make_model
 
@@ -23,6 +21,16 @@ def _compile_numeric_oracle(type_, compiler, **kw):
 @compiles(Integer, 'oracle')
 def _compile_integer_oracle(type_, compiler, **kw):
     return 'NUMBER(10)'
+
+
+# Coerce String type to produce VARCHAR(255) on MySQL backend.
+@compiles(String, 'mysql')
+def _compile_string_mysql(type_, compiler, **kw):
+
+    if not type_.length:
+        type_.length = 255
+    visit_attr = 'visit_{0}'.format(type_.__visit_name__)
+    return getattr(compiler, visit_attr)(type_, **kw)
 
 
 # Add DEFERRABLE INITIALLY DEFERRED to Oracle constraints.
@@ -77,31 +85,31 @@ def main(argv=None):
     # Ignore command name if called from command line.
     argv = argv or sys.argv[1:]
 
-    args = docopt(usage, argv=argv, version='0.3')
+    args = docopt(usage, argv=argv, version=__version__)
 
     url = args['--url'] or get_url(args['<model>'], args['<version>'])
-    model_json = json.loads(urllib.urlopen(url).read())
+    model_json = requests.get(url).json()
 
     metadata = MetaData()
     make_model(model_json, metadata)
 
     engine = create_engine(args['<dialect>'] + '://')
 
-    output = ''
+    output = []
 
     if not args['--xtables']:
 
         for table in metadata.sorted_tables:
 
-            output += str(CreateTable(table).
-                          compile(dialect=engine.dialect)).strip()
+            output.append(str(CreateTable(table).
+                          compile(dialect=engine.dialect)).strip())
 
             # The compile function does not output a statement terminator.
-            output += ';\n\n'
+            output.append(';\n\n')
 
     if not args['--xconstraints']:
 
-        output += '\n'
+        output.append('\n')
 
         for table in metadata.sorted_tables:
 
@@ -110,25 +118,27 @@ def main(argv=None):
                 # Avoid auto-generated empty primary key constraints.
                 if list(constraint.columns):
 
-                    output += str(AddConstraint(constraint).
-                                  compile(dialect=engine.dialect)).strip()
+                    output.append(str(AddConstraint(constraint).
+                                  compile(dialect=engine.dialect)).strip())
 
                     # The compile function does not output a terminator.
-                    output += ';\n\n'
+                    output.append(';\n\n')
 
     if not args['--xindexes']:
 
-        output += '\n'
+        output.append('\n')
 
         for table in metadata.sorted_tables:
 
             for index in table.indexes:
 
-                output += str(CreateIndex(index).
-                              compile(dialect=engine.dialect)).strip()
+                output.append(str(CreateIndex(index).
+                              compile(dialect=engine.dialect)).strip())
 
                 # The compile function does not output a statement terminator.
-                output += ';\n\n'
+                output.append(';\n\n')
+
+    output = ''.join(output)
 
     if args['--return']:
         return output

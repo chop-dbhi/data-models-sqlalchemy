@@ -30,28 +30,99 @@ I2B2_V1_7_URL = os.environ.get('I2B2_V1_7_URL') or \
 I2B2_PEDSNET_V2_URL = os.environ.get('I2B2_PEDSNET_V2_URL') or \
     URL_TEMPLATE.format(model='i2b2_pedsnet', version='v2')
 
-model_urls = {
-    'omop': {
-        'v4': OMOP_V4_URL,
-        'v5': OMOP_V5_URL
+MODELS = [
+    {
+        'pretty': 'PEDSnet',
+        'name': 'pedsnet',
+        'versions': [
+            {
+                'name': 'v2',
+                'url': PEDSNET_V2_URL
+            },
+            {
+                'name': 'v1',
+                'url': PEDSNET_V1_URL
+            }
+        ]
     },
-    'pedsnet': {
-        'v1': PEDSNET_V1_URL,
-        'v2': PEDSNET_V2_URL
+    {
+        'pretty': 'i2b2 PEDSnet',
+        'name': 'i2b2_pedsnet',
+        'versions': [
+            {
+                'name': 'v2',
+                'url': I2B2_PEDSNET_V2_URL
+            }
+        ]
     },
-    'pcornet': {
-        'v1': PCORNET_V1_URL,
-        'v2': PCORNET_V2_URL,
-        'v3': PCORNET_V3_URL
+    {
+        'pretty': 'PCORnet',
+        'name': 'pcornet',
+        'versions': [
+            {
+                'name': 'v3',
+                'url': PCORNET_V3_URL
+            },
+            {
+                'name': 'v2',
+                'url': PCORNET_V2_URL
+            },
+            {
+                'name': 'v1',
+                'url': PCORNET_V1_URL
+            }
+        ]
     },
-    'i2b2': {
-        'v1.7': I2B2_V1_7_URL
+    {
+        'pretty': 'OMOP',
+        'name': 'omop',
+        'versions': [
+            {
+                'name': 'v5',
+                'url': OMOP_V5_URL
+            },
+            {
+                'name': 'v4',
+                'url': OMOP_V4_URL
+            }
+        ]
     },
-    'i2b2_pedsnet': {
-        'v2': I2B2_PEDSNET_V2_URL
+    {
+        'pretty': 'i2b2',
+        'name': 'i2b2',
+        'versions': [
+            {
+                'name': 'v1.7',
+                'url': I2B2_V1_7_URL
+            }
+        ]
     }
-}
+]
+
+DIALECTS = [
+    {
+        'pretty': 'PostgreSQL',
+        'name': 'postgresql'
+    },
+    {
+        'pretty': 'Oracle',
+        'name': 'oracle'
+    },
+    {
+        'pretty': 'MS SQL Server',
+        'name': 'mssql'
+    },
+    {
+        'pretty': 'MySQL',
+        'name': 'mysql'
+    }
+]
 
 
 def get_url(model, version):
-    return model_urls[model][version]
+
+    for m in MODELS:
+        if m['name'] == model:
+            for v in m['versions']:
+                if v['name'] == version:
+                    return v['url']

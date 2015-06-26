@@ -10,20 +10,20 @@
         <li>{{ model.pretty }}
             <ul>
             {% for version in model.versions %}
-                <li>{{ version|upper }}
+                <li>{{ version.name|upper }}
                     <ul>
                         {% if erd %}
-                        <li><a href="/{{ model.name }}/{{ version }}/erd/">ERD</a></li>
+                        <li><a href="/{{ model.name }}/{{ version.name }}/erd/">ERD</a></li>
                         {% endif %}
                         <li>DDL
                             <ul>
                             {% for dialect in dialects %}
                                 <li>{{ dialect.pretty }}
                                     <ul>
-                                        <li><a href="/{{ model.name }}/{{ version }}/ddl/{{ dialect.name }}"/>Full DDL</a></li>
-                                        <li><a href="/{{ model.name }}/{{ version }}/ddl/{{ dialect.name }}/tables"/>Tables Only</a></li>
-                                        <li><a href="/{{ model.name }}/{{ version }}/ddl/{{ dialect.name }}/constraints"/>Constraints Only</a></li>
-                                        <li><a href="/{{ model.name }}/{{ version }}/ddl/{{ dialect.name }}/indexes"/>Indexes Only</a></li>
+                                        <li><a href="/{{ model.name }}/{{ version.name }}/ddl/{{ dialect.name }}"/>Full DDL</a></li>
+                                        <li><a href="/{{ model.name }}/{{ version.name }}/ddl/{{ dialect.name }}/tables"/>Tables Only</a></li>
+                                        <li><a href="/{{ model.name }}/{{ version.name }}/ddl/{{ dialect.name }}/constraints"/>Constraints Only</a></li>
+                                        <li><a href="/{{ model.name }}/{{ version.name }}/ddl/{{ dialect.name }}/indexes"/>Indexes Only</a></li>
                                     </ul>
                                 </li>
                             {% endfor %}

@@ -1,10 +1,8 @@
-#! /usr/bin/env python
-
 import sys
-import json
-from urllib import urlopen
+import requests
 from eralchemy import render_er
 from sqlalchemy import MetaData
+from dmsa import __version__
 from dmsa.settings import get_url
 from dmsa.makers import make_model
 
@@ -31,10 +29,10 @@ def main(argv=None):
     # Ignore command name if called from command line.
     argv = argv or sys.argv[1:]
 
-    args = docopt(usage, argv=argv, version='0.3')
+    args = docopt(usage, argv=argv, version=__version__)
 
     url = args['--url'] or get_url(args['<model>'], args['<version>'])
-    model_json = json.loads(urlopen(url).read())
+    model_json = requests.get(url).json()
 
     metadata = MetaData()
     make_model(model_json, metadata)

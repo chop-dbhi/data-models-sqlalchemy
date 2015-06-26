@@ -3,8 +3,12 @@ FROM python:2.7
 MAINTAINER Aaron Browne <brownea@email.chop.edu>
 
 # Install Oracle client C header files.
-ADD lib/instantclient-basic-linux.x64-11.2.0.4.0.tar.gz /usr/local/lib/
-ADD lib/instantclient-sdk-linux.x64-11.2.0.4.0.tar.gz /usr/local/lib/
+COPY lib/ /app/lib/
+RUN apt-get -qq update && apt-get -qq install -y unzip
+RUN unzip -qq /app/lib/instantclient-basic-linux.x64-11.2.0.4.0.zip \
+    -d /usr/local/lib
+RUN unzip -qq /app/lib/instantclient-sdk-linux.x64-11.2.0.4.0.zip \
+    -d /usr/local/lib
 RUN ln -s /usr/local/lib/instantclient_11_2/libclntsh.so.11.1 \
     /usr/local/lib/instantclient_11_2/libclntsh.so
 
@@ -27,9 +31,8 @@ RUN apt-get -qq update && \
 COPY requirements.txt /app/
 RUN pip install -r /app/requirements.txt && pip install \
     cx-Oracle==5.1.3 \
-    Flask==0.10.1 \
     psycopg2==2.6 \
-    PyMySQL==0.6.6 \
+    MySQL-python==1.2.5 \
     pyodbc==3.0.10
 
 # Copy app files.
