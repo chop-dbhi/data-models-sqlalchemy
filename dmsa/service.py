@@ -1,9 +1,8 @@
 import os
 import sys
 from flask import Flask, Response, request, send_file, render_template
+from dmsa import ddl, erd, __version__
 from dmsa.settings import MODELS, DIALECTS
-from dmsa.ddl import main as ddl
-from dmsa.erd import main as erd
 
 app = Flask('dmsa')
 
@@ -45,7 +44,7 @@ def ddl_route(model, version, dialect, elements):
         args.extend(['-t', '-c'])
 
     args.extend(['-r', model, version, dialect])
-    ddl_str = ddl(args)
+    ddl_str = ddl.main(args)
 
     resp = Response(ddl_str, status='200 OK', mimetype='text/plain')
 
@@ -65,7 +64,7 @@ def erd_route(model, version):
     except OSError:
         pass
 
-    erd([model, version, filepath])
+    erd.main([model, version, filepath])
 
     return send_file(filepath)
 
@@ -92,7 +91,7 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv[1:]
 
-    args = docopt(usage, argv=argv, version='0.3')
+    args = docopt(usage, argv=argv, version=__version__)
 
     app.run(host=args['--host'], port=int(args['--port']),
             debug=args['--debug'])

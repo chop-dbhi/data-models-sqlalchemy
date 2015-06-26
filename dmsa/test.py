@@ -1,5 +1,6 @@
 import sys
 import requests
+from dmsa import __version__
 from dmsa.settings import MODELS, DIALECTS
 
 
@@ -25,7 +26,7 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv[1:]
 
-    args = docopt(usage, argv=argv, version='0.3')
+    args = docopt(usage, argv=argv, version=__version__)
 
     endpoints = ['/']
 

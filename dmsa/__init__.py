@@ -1,0 +1,18 @@
+__version_info__ = {
+    'major': 0,
+    'minor': 3,
+    'micro': 1,
+    'releaselevel': 'beta',
+    'sha': ''
+}
+
+
+def get_version(short=False):
+    assert __version_info__['releaselevel'] in ('alpha', 'beta', 'final')
+    vers = ["%(major)i.%(minor)i.%(micro)i" % __version_info__, ]
+    if __version_info__['releaselevel'] != 'final' and not short:
+        vers.append('%s%s' % (__version_info__['releaselevel'][0],
+                    __version_info__['sha'].upper()))
+    return ''.join(vers)
+
+__version__ = get_version()

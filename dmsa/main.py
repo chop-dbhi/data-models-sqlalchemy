@@ -1,5 +1,5 @@
 import sys
-from dmsa import ddl, erd, service, test
+from dmsa import ddl, erd, service, test, __version__
 
 
 def main():
@@ -14,7 +14,7 @@ def main():
     # Ignore command name.
     argv = sys.argv[1:]
 
-    args = docopt(usage, argv=argv, version='0.3', options_first=True)
+    args = docopt(usage, argv=argv, version=__version__, options_first=True)
 
     # Trim subcommand.
     sub_argv = argv[1:]
