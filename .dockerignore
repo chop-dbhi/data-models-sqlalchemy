@@ -1,6 +1,13 @@
-Dockerfile
-LICENSE
-*egg-info
 *pyc
-Dockerrun.aws.json
+LICENSE
+
+Dockerrun.aws.json.template
+.pypirc.template
+circle.yml
+version.sh
+deploy.sh
+
+dist
+*egg-info
+
 instance

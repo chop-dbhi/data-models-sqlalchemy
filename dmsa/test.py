@@ -9,14 +9,13 @@ def main(argv=None):
 
     Tests each endpoint of the data model DDL and ERD web service to ensure it
     returns a status code of 200. If a test fails and the server is in debug
-    mode, finding and printing the traceback is attempted.
+    mode, finding and printing the traceback is attempted. The URL defaults to
+    http://127.0.0.1:5000
 
-    Usage: test.py [options]
+    Usage: test.py [options] [<url>]
 
     Options:
         -h --help           Show this screen.
-        -u URL --url=URL    The URL at which the web service is available
-                            [default: http://127.0.0.1:5000]
 
     """
 
@@ -56,7 +55,7 @@ def main(argv=None):
 
     for endpoint in endpoints:
 
-        url = args['--url'] + endpoint
+        url = args['<url>'] or 'http://127.0.0.1:5000' + endpoint
 
         r = requests.get(url)
 

@@ -11,6 +11,7 @@ with open('README.md', 'r') as f:
 install_requires = [
     'SQLAlchemy==1.0.5',
     'ERAlchemy==0.0.28',
+    'Flask==0.10.1',
     'docopt==0.6.2',
     'requests==2.7.0'
 ]
