@@ -29,7 +29,7 @@ RUN pip install -r /app/requirements.txt && pip install \
     cx-Oracle==5.1.3 \
     Flask==0.10.1 \
     psycopg2==2.6 \
-    PyMySQL==0.6.6 \
+    MySQL-python==1.2.5 \
     pyodbc==3.0.10
 
 # Copy app files.

@@ -4,7 +4,7 @@ import sys
 import urllib
 import json
 from sqlalchemy import create_engine, MetaData
-from sqlalchemy import Integer, Numeric
+from sqlalchemy import Integer, Numeric, String
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.schema import CreateTable, AddConstraint, CreateIndex
 from sqlalchemy.schema import (ForeignKeyConstraint, CheckConstraint,
@@ -23,6 +23,16 @@ def _compile_numeric_oracle(type_, compiler, **kw):
 @compiles(Integer, 'oracle')
 def _compile_integer_oracle(type_, compiler, **kw):
     return 'NUMBER(10)'
+
+
+# Coerce String type to produce VARCHAR(255) on MySQL backend.
+@compiles(String, 'mysql')
+def _compile_string_mysql(type_, compiler, **kw):
+
+    if not type_.length:
+        type_.length = 255
+    visit_attr = 'visit_{0}'.format(type_.__visit_name__)
+    return getattr(compiler, visit_attr)(type_, **kw)
 
 
 # Add DEFERRABLE INITIALLY DEFERRED to Oracle constraints.
