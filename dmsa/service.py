@@ -1,55 +1,9 @@
 import os
 import sys
 from flask import Flask, Response, request, send_file, render_template
+from dmsa.settings import MODELS, DIALECTS
 from dmsa.ddl import main as ddl
 from dmsa.erd import main as erd
-
-MODELS = [
-    {
-        'pretty': 'PEDSnet',
-        'name': 'pedsnet',
-        'versions': ['v2', 'v1']
-    },
-    {
-        'pretty': 'i2b2 PEDSnet',
-        'name': 'i2b2_pedsnet',
-        'versions': ['v2']
-    },
-    {
-        'pretty': 'PCORnet',
-        'name': 'pcornet',
-        'versions': ['v3', 'v2', 'v1']
-    },
-    {
-        'pretty': 'OMOP',
-        'name': 'omop',
-        'versions': ['v5', 'v4']
-    },
-    {
-        'pretty': 'i2b2',
-        'name': 'i2b2',
-        'versions': ['v1.7']
-    }
-]
-
-DIALECTS = [
-    {
-        'pretty': 'PostgreSQL',
-        'name': 'postgresql'
-    },
-    {
-        'pretty': 'Oracle',
-        'name': 'oracle'
-    },
-    {
-        'pretty': 'MS SQL Server',
-        'name': 'mssql'
-    },
-    {
-        'pretty': 'MySQL',
-        'name': 'mysql'
-    }
-]
 
 app = Flask('dmsa')
 
@@ -66,7 +20,8 @@ def index_route(model, version):
         models = [m for m in MODELS if m['name'] == model]
 
     if version:
-        models[0]['versions'] = [version]
+        versions = models[0]['versions']
+        versions = [v for v in versions if v['name'] == version]
 
     erd = not(request.path.endswith(('ddl', 'ddl/')))
 
