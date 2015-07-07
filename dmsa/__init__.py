@@ -1,14 +1,14 @@
 import os
 
-serial = os.environ.get('CIRCLE_BUILD_NUM')
-sha = os.environ.get('CIRCLE_SHA1')
+serial = os.environ.get('BUILD_NUM')
+sha = os.environ.get('COMMIT_SHA1')
 if sha:
     sha = sha[0:8]
 
 __version_info__ = {
     'major': 0,
     'minor': 4,
-    'micro': 0,
+    'micro': 1,
     'releaselevel': 'alpha',
     'serial': serial,
     'sha': sha

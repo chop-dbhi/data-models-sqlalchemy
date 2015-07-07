@@ -1,15 +1,20 @@
 #!/bin/bash
 
+if [ "${CIRCLECI}" = "true" ]; then
+    export BUILD_NUM="${CIRCLE_BUILD_NUM}"
+    export COMMIT_SHA1="${CIRCLE_SHA1}"
+fi
+
 VERSION=$(./version.sh)
 EB_BUCKET=elasticbeanstalk-us-east-1-248182584102
 
 # Push image to Docker Hub registry.
 docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
-docker push dbhi/data-models-sqlalchemy:$(./version.sh | sed "s/+/-/")
+docker push dbhi/data-models-sqlalchemy:${VERSION//+/-}
 
 # Create new Elastic Beanstalk version.
 DOCKERRUN_FILE=$VERSION-Dockerrun.aws.json
-sed "s/<TAG>/$VERSION/" < Dockerrun.aws.json.template > $DOCKERRUN_FILE
+sed "s/<TAG>/${VERSION//+/-}/" < Dockerrun.aws.json.template > $DOCKERRUN_FILE
 aws --region=us-east-1 s3 cp $DOCKERRUN_FILE s3://$EB_BUCKET/$DOCKERRUN_FILE
 aws --region=us-east-1 elasticbeanstalk create-application-version \
     --application-name data-models-sqlalchemy \

@@ -14,15 +14,15 @@ dependencies:
     - if [[ -e ~/docker/image.tar ]]; then docker load --input
       ~/docker/image.tar; fi
     - docker build -t
-      dbhi/data-models-sqlalchemy:$(./version.sh | sed "s/+/-/") .
+      dbhi/data-models-sqlalchemy:$(./version.sh | sed "s/+/-/g") .
     - mkdir -p ~/docker; docker save
-      dbhi/data-models-sqlalchemy:$(./version.sh | sed "s/+/-/") >
+      dbhi/data-models-sqlalchemy:$(./version.sh | sed "s/+/-/g") >
       ~/docker/image.tar
 
 test:
   override:
     - docker run -d -p "5000:80"
-      dbhi/data-models-sqlalchemy:$(./version.sh | sed "s/+/-/"); sleep 10
+      dbhi/data-models-sqlalchemy:$(./version.sh | sed "s/+/-/g"); sleep 10
     - dmsa test http://localhost:5000
 
 deployment:
