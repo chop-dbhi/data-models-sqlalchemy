@@ -2,7 +2,7 @@ import sys
 from setuptools import setup, find_packages
 from dmsa import __version__
 
-if sys.version_info < (2, 7):
+if sys.version_info < (2, 7) or sys.version_info > (3, 0):
     raise EnvironmentError('Python 2.7.x is required')
 
 with open('README.md', 'r') as f:

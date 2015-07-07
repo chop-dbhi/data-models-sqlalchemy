@@ -3,7 +3,8 @@ import requests
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy import Integer, Numeric, String
 from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.schema import CreateTable, AddConstraint, CreateIndex
+from sqlalchemy.schema import (CreateTable, AddConstraint, CreateIndex,
+                               DropTable, DropConstraint, DropIndex)
 from sqlalchemy.schema import (ForeignKeyConstraint, CheckConstraint,
                                UniqueConstraint)
 from dmsa import __version__
@@ -73,6 +74,8 @@ def main(argv=None):
         -t --xtables         Exclude tables from the generated DDL.
         -c --xconstraints    Exclude constraints from the generated DDL.
         -i --xindexes        Exclude indexes from the generated DDL.
+        -d --drop            Generate DDL to drop, instead of create, objects.
+        -x --delete-data     Generate DML to delete data.
         -u URL --url=URL     Retrieve model JSON from this URL instead of the
                              default or environment-variable-passed URL.
         -r --return          Return DDL as python string object instead of
@@ -86,7 +89,6 @@ def main(argv=None):
     argv = argv or sys.argv[1:]
 
     args = docopt(usage, argv=argv, version=__version__)
-
     url = args['--url'] or get_url(args['<model>'], args['<version>'])
     model_json = requests.get(url).json()
 
@@ -97,46 +99,49 @@ def main(argv=None):
 
     output = []
 
+    if args['--delete-data']:
+
+        tables = reversed(metadata.sorted_tables)
+        output.extend(delete_data(tables, engine))
+
+        output = ''.join(output)
+
+        if args['--return']:
+            return output
+        else:
+            sys.stdout.write(output)
+            return
+
     if not args['--xtables']:
 
-        for table in metadata.sorted_tables:
-
-            output.append(str(CreateTable(table).
-                          compile(dialect=engine.dialect)).strip())
-
-            # The compile function does not output a statement terminator.
-            output.append(';\n\n')
+        if not args['--drop']:
+            tables = metadata.sorted_tables
+            output.extend(table_ddl(tables, engine, False))
+        else:
+            tables = reversed(metadata.sorted_tables)
+            output.extend(table_ddl(tables, engine, True))
 
     if not args['--xconstraints']:
 
-        output.append('\n')
-
-        for table in metadata.sorted_tables:
-
-            for constraint in table.constraints:
-
-                # Avoid auto-generated empty primary key constraints.
-                if list(constraint.columns):
-
-                    output.append(str(AddConstraint(constraint).
-                                  compile(dialect=engine.dialect)).strip())
-
-                    # The compile function does not output a terminator.
-                    output.append(';\n\n')
+        if not args['--drop']:
+            tables = metadata.sorted_tables
+            output.append('\n')
+            output.extend(constraint_ddl(tables, engine, False))
+        else:
+            tables = reversed(metadata.sorted_tables)
+            output.insert(0, '\n')
+            output[0:0] = constraint_ddl(tables, engine, True)
 
     if not args['--xindexes']:
 
-        output.append('\n')
-
-        for table in metadata.sorted_tables:
-
-            for index in table.indexes:
-
-                output.append(str(CreateIndex(index).
-                              compile(dialect=engine.dialect)).strip())
-
-                # The compile function does not output a statement terminator.
-                output.append(';\n\n')
+        if not args['--drop']:
+            tables = metadata.sorted_tables
+            output.append('\n')
+            output.extend(index_ddl(tables, engine, False))
+        else:
+            tables = reversed(metadata.sorted_tables)
+            output.insert(0, '\n')
+            output[0:0] = index_ddl(tables, engine, True)
 
     output = ''.join(output)
 
@@ -144,6 +149,74 @@ def main(argv=None):
         return output
     else:
         sys.stdout.write(output)
+
+
+def delete_data(tables, engine):
+
+    output = []
+
+    for table in tables:
+        output.append(str(table.delete().compile(dialect=engine.dialect)).
+                      strip())
+        output.append(';\n\n')
+
+    return output
+
+
+def table_ddl(tables, engine, drop=False):
+
+    output = []
+
+    for table in tables:
+
+        if not drop:
+            ddl = CreateTable(table)
+        else:
+            ddl = DropTable(table)
+
+        output.append(str(ddl.compile(dialect=engine.dialect)).strip())
+        output.append(';\n\n')
+
+    return output
+
+
+def constraint_ddl(tables, engine, drop=False):
+
+    output = []
+
+    for table in tables:
+        for constraint in table.constraints:
+
+            # Avoid auto-generated but empty primary key constraints.
+            if list(constraint.columns):
+
+                if not drop:
+                    ddl = AddConstraint(constraint)
+                else:
+                    ddl = DropConstraint(constraint)
+
+                output.append(str(ddl.compile(dialect=engine.dialect)).strip())
+                output.append(';\n\n')
+
+    return output
+
+
+def index_ddl(tables, engine, drop=False):
+
+    output = []
+
+    for table in tables:
+        for index in table.indexes:
+
+            if not drop:
+                ddl = CreateIndex(index)
+            else:
+                ddl = DropIndex(index)
+
+            output.append(str(ddl.compile(dialect=engine.dialect)).strip())
+            output.append(';\n\n')
+
+    return output
 
 
 if __name__ == '__main__':
