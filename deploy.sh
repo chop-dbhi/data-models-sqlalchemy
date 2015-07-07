@@ -1,10 +1,5 @@
 #!/bin/bash
 
-if [ "${CIRCLECI}" = "true" ]; then
-    export BUILD_NUM="${CIRCLE_BUILD_NUM}"
-    export COMMIT_SHA1="${CIRCLE_SHA1}"
-fi
-
 VERSION=$(./version.sh)
 EB_BUCKET=elasticbeanstalk-us-east-1-248182584102
 
@@ -34,7 +29,6 @@ if [ ${#VERSION} -lt 6 ]; then
     git push --tags
 
     # Upload package to PyPi.
-    pip install wheel twine
     sed -e "s/<PYPI_USER>/$PYPI_USER/" -e "s/<PYPI_PASS>/$PYPI_PASS/" \
         < .pypirc.template > .pypirc
     python setup.py register

@@ -6,6 +6,9 @@ machine:
       sudo start docker
   python:
     version: 2.7.3
+  environment:
+    BUILD_NUM: "${CIRCLE_BUILD_NUM}"
+    COMMIT_SHA1: "${CIRCLE_SHA1}"
 
 dependencies:
   cache_directories:
@@ -29,4 +32,5 @@ deployment:
   all:
     branch: /.*/
     commands:
+      - pip install awscli wheel twine
       - ./deploy.sh

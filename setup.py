@@ -18,7 +18,7 @@ install_requires = [
 
 kwargs = {
     'name': 'dmsa',
-    'version': __version__,
+    'version': __version__.replace('-', '', 1),
     'author': 'The Children\'s Hospital of Philadelphia',
     'author_email': 'cbmisupport@email.chop.edu',
     'url': 'https://github.com/chop-dbhi/data-models-sqlalchemy',
