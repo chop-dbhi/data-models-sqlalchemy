@@ -24,7 +24,17 @@ def _compile_integer_oracle(type_, compiler, **kw):
     return 'NUMBER(10)'
 
 
-# Coerce String type to produce VARCHAR(255) on MySQL backend.
+# Coerce String type without length to produce VARCHAR2(255) on Oracle.
+@compiles(String, 'oracle')
+def _compile_string_oracle(type_, compiler, **kw):
+
+    if not type_.length:
+        type_.length = 255
+    visit_attr = 'visit_{0}'.format(type_.__visit_name__)
+    return getattr(compiler, visit_attr)(type_, **kw)
+
+
+# Coerce String type without length to produce VARCHAR(255) on MySQL.
 @compiles(String, 'mysql')
 def _compile_string_mysql(type_, compiler, **kw):
 
