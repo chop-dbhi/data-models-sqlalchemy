@@ -7,15 +7,16 @@
     <h1>Data Models DDL and ERDs</h1>
     <ul>
     {% for model in models %}
-        <li>{{ model.pretty }}
+        <li><a href="/{{ model.name }}"/>{{ model.pretty }}</a>
             <ul>
-            {% for version in model.versions %}
-                <li>{{ version.name|upper }}
+            {% for version in versions|default(model.versions) %}
+                <li><a href="/{{ model.name }}/{{ version.name }}"/>{{ version.name|upper }}</a>
                     <ul>
                         {% if erd %}
                         <li><a href="/{{ model.name }}/{{ version.name }}/erd/">ERD</a></li>
                         {% endif %}
-                        <li>DDL
+                        {% if ddl %}
+                        <li><a href="/{{ model.name }}/{{ version.name }}/ddl"/>Creation DDL</a>
                             <ul>
                             {% for dialect in dialects %}
                                 <li>{{ dialect.pretty }}
@@ -29,6 +30,32 @@
                             {% endfor %}
                             </ul>
                         </li>
+                        {% endif %}
+                        {% if drop %}
+                        <li><a href="/{{ model.name }}/{{ version.name }}/drop"/>Drop DDL</a>
+                            <ul>
+                            {% for dialect in dialects %}
+                                <li>{{ dialect.pretty }}
+                                    <ul>
+                                        <li><a href="/{{ model.name }}/{{ version.name }}/drop/{{ dialect.name }}"/>Full Drop DDL</a></li>
+                                        <li><a href="/{{ model.name }}/{{ version.name }}/drop/{{ dialect.name }}/tables"/>Drop Tables Only</a></li>
+                                        <li><a href="/{{ model.name }}/{{ version.name }}/drop/{{ dialect.name }}/constraints"/>Drop Constraints Only</a></li>
+                                        <li><a href="/{{ model.name }}/{{ version.name }}/drop/{{ dialect.name }}/indexes"/>Drop Indexes Only</a></li>
+                                    </ul>
+                                </li>
+                            {% endfor %}
+                            </ul>
+                        </li>
+                        {% endif %}
+                        {% if delete %}
+                        <li><a href="/{{ model.name }}/{{ version.name }}/delete"/>Delete Data</a>
+                            <ul>
+                            {% for dialect in dialects %}
+                                <li><a href="/{{ model.name }}/{{ version.name }}/delete/{{ dialect.name }}"/>{{ dialect.pretty }}</a></li>
+                            {% endfor %}
+                            </ul>
+                        </li>
+                        {% endif %}
                     </ul>
                 </li>
             {% endfor %}

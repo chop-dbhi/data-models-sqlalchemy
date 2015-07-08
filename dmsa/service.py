@@ -1,5 +1,6 @@
 import os
 import sys
+from copy import deepcopy
 from flask import Flask, Response, request, send_file, render_template
 from dmsa import ddl, erd, __version__
 from dmsa.settings import MODELS, DIALECTS
@@ -10,22 +11,57 @@ app = Flask('dmsa')
 @app.route('/', defaults={'model': None, 'version': None})
 @app.route('/<model>/', defaults={'version': None})
 @app.route('/<model>/<version>/')
-@app.route('/<model>/<version>/ddl/')
 def index_route(model, version):
 
-    models = MODELS
+    models = deepcopy(MODELS)
 
     if model:
         models = [m for m in MODELS if m['name'] == model]
 
     if version:
-        versions = models[0]['versions']
-        versions = [v for v in versions if v['name'] == version]
+        versions = [v for v in models[0]['versions'] if v['name'] == version]
+        return render_template('index.html', models=models, versions=versions,
+                               dialects=DIALECTS, erd=True, ddl=True,
+                               drop=True, delete=True)
+    else:
+        return render_template('index.html', models=models, dialects=DIALECTS,
+                               erd=True, ddl=True, drop=True, delete=True)
 
-    erd = not(request.path.endswith(('ddl', 'ddl/')))
 
-    return render_template('index.html', models=models, dialects=DIALECTS,
-                           erd=erd)
+@app.route('/<model>/<version>/ddl/')
+def ddl_index_route(model, version):
+
+    models = MODELS
+    models = [m for m in MODELS if m['name'] == model]
+    versions = [v for v in models[0]['versions'] if v['name'] == version]
+
+    return render_template('index.html', models=models, versions=versions,
+                           dialects=DIALECTS, erd=False, ddl=True, drop=False,
+                           delete=False)
+
+
+@app.route('/<model>/<version>/drop/')
+def drop_index_route(model, version):
+
+    models = MODELS
+    models = [m for m in MODELS if m['name'] == model]
+    versions = [v for v in models[0]['versions'] if v['name'] == version]
+
+    return render_template('index.html', models=models, versions=versions,
+                           dialects=DIALECTS, erd=False, ddl=False, drop=True,
+                           delete=False)
+
+
+@app.route('/<model>/<version>/delete/')
+def delete_index_route(model, version):
+
+    models = MODELS
+    models = [m for m in MODELS if m['name'] == model]
+    versions = [v for v in models[0]['versions'] if v['name'] == version]
+
+    return render_template('index.html', models=models, versions=versions,
+                           dialects=DIALECTS, erd=False, ddl=False, drop=False,
+                           delete=True)
 
 
 @app.route('/<model>/<version>/ddl/<dialect>/', defaults={'elements': 'all'})
@@ -44,6 +80,40 @@ def ddl_route(model, version, dialect, elements):
         args.extend(['-t', '-c'])
 
     args.extend(['-r', model, version, dialect])
+    ddl_str = ddl.main(args)
+
+    resp = Response(ddl_str, status='200 OK', mimetype='text/plain')
+
+    return resp
+
+
+@app.route('/<model>/<version>/drop/<dialect>/', defaults={'elements': 'all'})
+@app.route('/<model>/<version>/drop/<dialect>/<elements>/')
+def drop_route(model, version, dialect, elements):
+
+    args = []
+
+    if elements == 'tables':
+        args.extend(['-c', '-i'])
+
+    if elements == 'constraints':
+        args.extend(['-t', '-i'])
+
+    if elements == 'indexes':
+        args.extend(['-t', '-c'])
+
+    args.extend(['-r', '-d', model, version, dialect])
+    ddl_str = ddl.main(args)
+
+    resp = Response(ddl_str, status='200 OK', mimetype='text/plain')
+
+    return resp
+
+
+@app.route('/<model>/<version>/delete/<dialect>/')
+def delete_route(model, version, dialect):
+
+    args = ['-r', '-x', model, version, dialect]
     ddl_str = ddl.main(args)
 
     resp = Response(ddl_str, status='200 OK', mimetype='text/plain')

@@ -1,5 +1,7 @@
 # Data Models SQLAlchemy
 
+[![Circle CI](https://circleci.com/gh/chop-dbhi/data-models-sqlalchemy/tree/master.svg?style=svg)](https://circleci.com/gh/chop-dbhi/data-models-sqlalchemy/tree/master)
+
 SQLAlchemy models and DDL and ERD generation for chop-dbhi/data-models style JSON endpoints.
 
 Web service available at http://dmsa.a0b.io/
@@ -66,10 +68,22 @@ Usage for DDL generation:
 docker run --rm dbhi/data-models-sqlalchemy ddl -h
 ```
 
-Generate OMOP V5 DDL for Oracle:
+Generate OMOP V5 creation DDL for Oracle:
 
 ```sh
 docker run --rm dbhi/data-models-sqlalchemy ddl omop v5 oracle
+```
+
+Generate OMOP V5 drop DDL for Oracle:
+
+```sh
+docker run --rm dbhi/data-models-sqlalchemy ddl -d omop v5 oracle
+```
+
+Generate OMOP V5 data deletion DML for Oracle:
+
+```sh
+docker run --rm dbhi/data-models-sqlalchemy ddl -x omop v5 oracle
 ```
 
 Usage for ERD generation:
@@ -117,10 +131,22 @@ Usage for DDL generation:
 dmsa ddl -h
 ```
 
-Generate OMOP V5 DDL for Oracle:
+Generate OMOP V5 creation DDL for Oracle:
 
 ```sh
 dmsa ddl omop v5 oracle
+```
+
+Generate OMOP V5 drop DDL for Oracle:
+
+```sh
+dmsa ddl -d omop v5 oracle
+```
+
+Generate OMOP V5 data deletion DML for Oracle:
+
+```sh
+dmsa ddl -x omop v5 oracle
 ```
 
 Usage for ERD generation:
@@ -140,8 +166,11 @@ dmsa erd i2b2_pedsnet v2 ./erd/i2b2_pedsnet_v2_erd.png
 
 The web service uses a simple Flask debug server for now. It exposes the following endpoints:
 
-- DDL at `/<model>/<version>/ddl/<dialect>/`
-- DDL for only `table`, `constraint`, or `index` elements at `/<model>/<version>/ddl/<dialect>/<elements>`
+- Creation DDL at `/<model>/<version>/ddl/<dialect>/`
+- Creation DDL for only `table`, `constraint`, or `index` elements at `/<model>/<version>/ddl/<dialect>/<elements>`
+- Drop DDL at `/<model>/<version>/drop/<dialect>/`
+- Drop DDL for only `table`, `constraint`, or `index` elements at `/<model>/<version>/drop/<dialect>/<elements>`
+- Data deletion DML at `/<model>/<version>/delete/<dialect>/`
 - ERDs at `/<model>/<version>/erd/`
 
 ### With Docker:

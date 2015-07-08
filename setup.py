@@ -2,7 +2,7 @@ import sys
 from setuptools import setup, find_packages
 from dmsa import __version__
 
-if sys.version_info < (2, 7):
+if sys.version_info < (2, 7) or sys.version_info > (3, 0):
     raise EnvironmentError('Python 2.7.x is required')
 
 with open('README.md', 'r') as f:
@@ -18,7 +18,7 @@ install_requires = [
 
 kwargs = {
     'name': 'dmsa',
-    'version': __version__,
+    'version': __version__.replace('-', '', 1),
     'author': 'The Children\'s Hospital of Philadelphia',
     'author_email': 'cbmisupport@email.chop.edu',
     'url': 'https://github.com/chop-dbhi/data-models-sqlalchemy',

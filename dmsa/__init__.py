@@ -1,13 +1,15 @@
 import os
 
-serial = os.environ.get('CIRCLE_BUILD_NUM') or 0
-sha = os.environ.get('CIRCLE_SHA1') or 'untested'
+serial = os.environ.get('BUILD_NUM') or '0'
+sha = os.environ.get('COMMIT_SHA1') or '0'
+if sha:
+    sha = sha[0:8]
 
 __version_info__ = {
     'major': 0,
-    'minor': 3,
-    'micro': 1,
-    'releaselevel': 'beta',
+    'minor': 4,
+    'micro': 2,
+    'releaselevel': 'alpha',
     'serial': serial,
     'sha': sha
 }
@@ -15,12 +17,10 @@ __version_info__ = {
 
 def get_version(short=False):
     assert __version_info__['releaselevel'] in ('alpha', 'beta', 'final')
-    vers = ["%(major)i.%(minor)i.%(micro)i" % __version_info__, ]
+    vers = ['%(major)i.%(minor)i.%(micro)i' % __version_info__, ]
     if __version_info__['releaselevel'] != 'final' and not short:
-        vers.append('%s%i+%s' % (__version_info__['releaselevel'][0],
-                                 int(__version_info__['serial']),
-                                 __version_info__['sha'].lower()[:8]))
+        __version_info__['lvlchar'] = __version_info__['releaselevel'][0]
+        vers.append('%(lvlchar)s%(serial)s+%(sha)s' % __version_info__)
     return ''.join(vers)
-
 
 __version__ = get_version()

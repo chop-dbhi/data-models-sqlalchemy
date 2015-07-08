@@ -37,16 +37,24 @@ def main(argv=None):
 
             endpoints.append('/%s/%s/' % (m['name'], v['name']))
             endpoints.append('/%s/%s/ddl/' % (m['name'], v['name']))
+            endpoints.append('/%s/%s/drop/' % (m['name'], v['name']))
+            endpoints.append('/%s/%s/delete/' % (m['name'], v['name']))
             endpoints.append('/%s/%s/erd/' % (m['name'], v['name']))
 
             for d in DIALECTS:
 
-                endpoints.append('/%s/%s/ddl/%s/' % (m['name'], v['name'],
-                                                     d['name']))
+                endpoints.append('/%s/%s/ddl/%s/' %
+                                 (m['name'], v['name'], d['name']))
+                endpoints.append('/%s/%s/drop/%s/' %
+                                 (m['name'], v['name'], d['name']))
+                endpoints.append('/%s/%s/delete/%s/' %
+                                 (m['name'], v['name'], d['name']))
 
                 for e in ['tables', 'constraints', 'indexes']:
 
                     endpoints.append('/%s/%s/ddl/%s/%s/' %
+                                     (m['name'], v['name'], d['name'], e))
+                    endpoints.append('/%s/%s/drop/%s/%s/' %
                                      (m['name'], v['name'], d['name'], e))
 
     err_num = 0
