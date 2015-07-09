@@ -9,6 +9,7 @@ machine:
   environment:
     BUILD_NUM: "${CIRCLE_BUILD_NUM}"
     COMMIT_SHA1: "${CIRCLE_SHA1}"
+    BRANCH: "${CIRCLE_BRANCH}"
 
 dependencies:
   cache_directories:
