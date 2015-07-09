@@ -6,7 +6,7 @@ from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.schema import (CreateTable, AddConstraint, CreateIndex,
                                DropTable, DropConstraint, DropIndex)
 from sqlalchemy.schema import (ForeignKeyConstraint, CheckConstraint,
-                               UniqueConstraint)
+                               UniqueConstraint, PrimaryKeyConstraint)
 from dmsa import __version__
 from dmsa.settings import get_url
 from dmsa.makers import make_model
@@ -197,8 +197,9 @@ def constraint_ddl(tables, engine, drop=False):
     for table in tables:
         for constraint in table.constraints:
 
-            # Avoid auto-generated but empty primary key constraints.
-            if list(constraint.columns):
+            # Avoid duplicating primary key constraint definitions (they are
+            # included in CREATE TABLE statements).
+            if not isinstance(constraint, PrimaryKeyConstraint):
 
                 if not drop:
                     ddl = AddConstraint(constraint)
