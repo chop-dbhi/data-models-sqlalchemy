@@ -1,0 +1,6 @@
+{
+    "state": "pending",
+    "target_url": "https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/environment/dashboard?applicationName=data-models-sqlalchemy&environmentId=<AWSID>",
+    "description": "Deploying to AWS for review...",
+    "context": "cd/awseb"
+}

@@ -1,0 +1,6 @@
+{
+    "state": "failure",
+    "target_url": "https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/environment/dashboard?applicationName=data-models-sqlalchemy&environmentId=<AWSID>",
+    "description": "Deployment to AWS failed.",
+    "context": "cd/awseb"
+}

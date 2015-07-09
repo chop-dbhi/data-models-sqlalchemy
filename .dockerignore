@@ -1,11 +1,8 @@
 *pyc
 LICENSE
 
-Dockerrun.aws.json.template
-.pypirc.template
 circle.yml
-version.sh
-deploy.sh
+ci
 
 dist
 *egg-info
