@@ -11,6 +11,10 @@ machine:
     COMMIT_SHA1: "${CIRCLE_SHA1}"
     BRANCH: "${CIRCLE_BRANCH}"
 
+checkout:
+  post:
+    - ./ci/git-set-file-times.pl
+
 dependencies:
   cache_directories:
     - "~/docker"
