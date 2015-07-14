@@ -6,7 +6,7 @@ from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.schema import (CreateTable, AddConstraint, CreateIndex,
                                DropTable, DropConstraint, DropIndex)
 from sqlalchemy.schema import (ForeignKeyConstraint, CheckConstraint,
-                               UniqueConstraint)
+                               UniqueConstraint, PrimaryKeyConstraint)
 from dmsa import __version__
 from dmsa.settings import get_url
 from dmsa.makers import make_model
@@ -24,7 +24,17 @@ def _compile_integer_oracle(type_, compiler, **kw):
     return 'NUMBER(10)'
 
 
-# Coerce String type to produce VARCHAR(255) on MySQL backend.
+# Coerce String type without length to produce VARCHAR2(255) on Oracle.
+@compiles(String, 'oracle')
+def _compile_string_oracle(type_, compiler, **kw):
+
+    if not type_.length:
+        type_.length = 255
+    visit_attr = 'visit_{0}'.format(type_.__visit_name__)
+    return getattr(compiler, visit_attr)(type_, **kw)
+
+
+# Coerce String type without length to produce VARCHAR(255) on MySQL.
 @compiles(String, 'mysql')
 def _compile_string_mysql(type_, compiler, **kw):
 
@@ -187,8 +197,9 @@ def constraint_ddl(tables, engine, drop=False):
     for table in tables:
         for constraint in table.constraints:
 
-            # Avoid auto-generated but empty primary key constraints.
-            if list(constraint.columns):
+            # Avoid duplicating primary key constraint definitions (they are
+            # included in CREATE TABLE statements).
+            if not isinstance(constraint, PrimaryKeyConstraint):
 
                 if not drop:
                     ddl = AddConstraint(constraint)
