@@ -34,6 +34,8 @@ if [ "${BRANCH}" = "master" ]; then
     if [ ${#VERSION} -lt 6 ]; then
     
         echo "Creating GitHub release."
+        git config --global user.email "aaron0browne@gmail.com"
+        git config --global user.name "Aaron Browne"
         git tag -a "${VERSION}" -m "Release of version ${VERSION}"
         git push --tags
     
@@ -53,17 +55,35 @@ if [ "${BRANCH}" = "master" ]; then
     
     fi
 
-# If not...
+# If not on master branch...
 else
 
-    echo "Creating new Elastic Beanstalk environment running new version."
-    AWSNAME="dmsa-${COMMIT_SHA1:0:8}"
-    aws --region=us-east-1 elasticbeanstalk create-environment \
-        --application-name data-models-sqlalchemy \
-        --environment-name "${AWSNAME}" \
-        --cname-prefix "${AWSNAME}" \
-        --version-label "${VERSION}" \
-        --template-name data-models-sa-conf
+    AWSNAME="dmsa-${BRANCH}"
+    BRANCH_EXISTS=$(aws --region=us-east-1 elasticbeanstalk \
+        describe-environments --application-name data-models-sqlalchemy \
+        --environment-name "${AWSNAME}" | jq --raw-output \
+        '.Environments | length')
+
+    # If branch environment already exists...
+    if [ "${BRANCH_EXISTS}" = 1 ]; then
+
+        echo "Updating ${BRANCH} branch deployment on Elastic Beanstalk."
+        aws --region=us-east-1 elasticbeanstalk update-environment \
+            --environment-name "${AWSNAME}" \
+            --version-label "${VERSION}"
+
+    # If branch environment doesn't exist yet...
+    else
+
+        echo "Creating new ${BRANCH} branch deployment on Elastic Beanstalk."
+        aws --region=us-east-1 elasticbeanstalk create-environment \
+            --application-name data-models-sqlalchemy \
+            --environment-name "${AWSNAME}" \
+            --cname-prefix "${AWSNAME}" \
+            --version-label "${VERSION}" \
+            --template-name data-models-sa-conf
+
+    fi
 
 fi
 
