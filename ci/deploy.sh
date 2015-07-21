@@ -34,6 +34,8 @@ if [ "${BRANCH}" = "master" ]; then
     if [ ${#VERSION} -lt 6 ]; then
     
         echo "Creating GitHub release."
+        git config --global user.email "aaron0browne@gmail.com"
+        git config --global user.name "Aaron Browne"
         git tag -a "${VERSION}" -m "Release of version ${VERSION}"
         git push --tags
     
@@ -57,7 +59,7 @@ if [ "${BRANCH}" = "master" ]; then
 else
 
     echo "Creating new Elastic Beanstalk environment running new version."
-    AWSNAME="dmsa-${COMMIT_SHA1:0:8}"
+    AWSNAME="dmsa-${BRANCH}"
     aws --region=us-east-1 elasticbeanstalk create-environment \
         --application-name data-models-sqlalchemy \
         --environment-name "${AWSNAME}" \
