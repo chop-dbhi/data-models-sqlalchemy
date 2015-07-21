@@ -55,17 +55,35 @@ if [ "${BRANCH}" = "master" ]; then
     
     fi
 
-# If not...
+# If not on master branch...
 else
 
-    echo "Creating new Elastic Beanstalk environment running new version."
     AWSNAME="dmsa-${BRANCH}"
-    aws --region=us-east-1 elasticbeanstalk create-environment \
-        --application-name data-models-sqlalchemy \
-        --environment-name "${AWSNAME}" \
-        --cname-prefix "${AWSNAME}" \
-        --version-label "${VERSION}" \
-        --template-name data-models-sa-conf
+    BRANCH_EXISTS=$(aws --region=us-east-1 elasticbeanstalk \
+        describe-environments --application-name data-models-sqlalchemy \
+        --environment-name "${AWSNAME}" | jq --raw-output \
+        '.Environments | length')
+
+    # If branch environment already exists...
+    if [ "${BRANCH_EXISTS}" = 1 ]; then
+
+        echo "Updating ${BRANCH} branch deployment on Elastic Beanstalk."
+        aws --region=us-east-1 elasticbeanstalk update-environment \
+            --environment-name "${AWSNAME}" \
+            --version-label "${VERSION}"
+
+    # If branch environment doesn't exist yet...
+    else
+
+        echo "Creating new ${BRANCH} branch deployment on Elastic Beanstalk."
+        aws --region=us-east-1 elasticbeanstalk create-environment \
+            --application-name data-models-sqlalchemy \
+            --environment-name "${AWSNAME}" \
+            --cname-prefix "${AWSNAME}" \
+            --version-label "${VERSION}" \
+            --template-name data-models-sa-conf
+
+    fi
 
 fi
 
