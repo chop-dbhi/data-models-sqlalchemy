@@ -1,67 +1,41 @@
 import os
 import sys
-from copy import deepcopy
-from flask import Flask, Response, request, send_file, render_template
+from flask import (Flask, Response, request, send_file, render_template,
+                   redirect, url_for)
 from dmsa import ddl, erd, __version__
 from dmsa.settings import MODELS, DIALECTS
 
 app = Flask('dmsa')
 
 
-@app.route('/', defaults={'model': None, 'version': None})
-@app.route('/<model>/', defaults={'version': None})
-@app.route('/<model>/<version>/')
-def index_route(model, version):
-
-    models = deepcopy(MODELS)
-
-    if model:
-        models = [m for m in MODELS if m['name'] == model]
-
-    if version:
-        versions = [v for v in models[0]['versions'] if v['name'] == version]
-        return render_template('index.html', models=models, versions=versions,
-                               dialects=DIALECTS, erd=True, ddl=True,
-                               drop=True, delete=True)
-    else:
-        return render_template('index.html', models=models, dialects=DIALECTS,
-                               erd=True, ddl=True, drop=True, delete=True)
+@app.route('/')
+def index_route():
+    return render_template('index.html', models=MODELS)
 
 
-@app.route('/<model>/<version>/ddl/')
-def ddl_index_route(model, version):
+@app.route('/<model_name>/')
+def model_route(model_name):
 
-    models = MODELS
-    models = [m for m in MODELS if m['name'] == model]
-    versions = [v for v in models[0]['versions'] if v['name'] == version]
+    for model in MODELS:
+        if model['name'] == model_name:
+            break
 
-    return render_template('index.html', models=models, versions=versions,
-                           dialects=DIALECTS, erd=False, ddl=True, drop=False,
-                           delete=False)
+    return render_template('model.html', model=model)
 
 
-@app.route('/<model>/<version>/drop/')
-def drop_index_route(model, version):
+@app.route('/<model_name>/<version_name>/')
+def version_route(model_name, version_name):
 
-    models = MODELS
-    models = [m for m in MODELS if m['name'] == model]
-    versions = [v for v in models[0]['versions'] if v['name'] == version]
+    for model in MODELS:
+        if model['name'] == model_name:
+            break
 
-    return render_template('index.html', models=models, versions=versions,
-                           dialects=DIALECTS, erd=False, ddl=False, drop=True,
-                           delete=False)
+    for version in model['versions']:
+        if version['name'] == version_name:
+            break
 
-
-@app.route('/<model>/<version>/delete/')
-def delete_index_route(model, version):
-
-    models = MODELS
-    models = [m for m in MODELS if m['name'] == model]
-    versions = [v for v in models[0]['versions'] if v['name'] == version]
-
-    return render_template('index.html', models=models, versions=versions,
-                           dialects=DIALECTS, erd=False, ddl=False, drop=False,
-                           delete=True)
+    return render_template('version.html', model=model, version=version,
+                           dialects=DIALECTS)
 
 
 @app.route('/<model>/<version>/ddl/<dialect>/', defaults={'elements': 'all'})
@@ -122,11 +96,11 @@ def delete_route(model, version, dialect):
 
 
 @app.route('/<model>/<version>/erd/')
-def erd_route(model, version):
+def create_erd_route(model, version):
 
     ext = request.args.get('format') or 'png'
 
-    filename = '%s_%s.%s' % (model, version, ext)
+    filename = '%s_%s_dmsa_%s.%s' % (model, version, __version__, ext)
     filepath = '/'.join([app.instance_path, filename])
 
     try:
@@ -135,6 +109,15 @@ def erd_route(model, version):
         pass
 
     erd.main([model, version, filepath])
+
+    return redirect(url_for('erd_route', model=model, version=version,
+                            filename=filename))
+
+
+@app.route('/<model>/<version>/erd/<filename>')
+def erd_route(model, version, filename):
+
+    filepath = '/'.join([app.instance_path, filename])
 
     return send_file(filepath)
 

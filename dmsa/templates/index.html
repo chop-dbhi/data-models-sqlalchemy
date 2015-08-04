@@ -4,64 +4,11 @@
     <title>Data Models DDL and ERDs</title>
 </head>
 <body>
-    <h1>Data Models DDL and ERDs</h1>
-    <ul>
-    {% for model in models %}
-        <li><a href="/{{ model.name }}"/>{{ model.pretty }}</a>
-            <ul>
-            {% for version in versions|default(model.versions) %}
-                <li><a href="/{{ model.name }}/{{ version.name }}"/>{{ version.name|upper }}</a>
-                    <ul>
-                        {% if erd %}
-                        <li><a href="/{{ model.name }}/{{ version.name }}/erd/">ERD</a></li>
-                        {% endif %}
-                        {% if ddl %}
-                        <li><a href="/{{ model.name }}/{{ version.name }}/ddl"/>Creation DDL</a>
-                            <ul>
-                            {% for dialect in dialects %}
-                                <li>{{ dialect.pretty }}
-                                    <ul>
-                                        <li><a href="/{{ model.name }}/{{ version.name }}/ddl/{{ dialect.name }}"/>Full DDL</a></li>
-                                        <li><a href="/{{ model.name }}/{{ version.name }}/ddl/{{ dialect.name }}/tables"/>Tables Only</a></li>
-                                        <li><a href="/{{ model.name }}/{{ version.name }}/ddl/{{ dialect.name }}/constraints"/>Constraints Only</a></li>
-                                        <li><a href="/{{ model.name }}/{{ version.name }}/ddl/{{ dialect.name }}/indexes"/>Indexes Only</a></li>
-                                    </ul>
-                                </li>
-                            {% endfor %}
-                            </ul>
-                        </li>
-                        {% endif %}
-                        {% if drop %}
-                        <li><a href="/{{ model.name }}/{{ version.name }}/drop"/>Drop DDL</a>
-                            <ul>
-                            {% for dialect in dialects %}
-                                <li>{{ dialect.pretty }}
-                                    <ul>
-                                        <li><a href="/{{ model.name }}/{{ version.name }}/drop/{{ dialect.name }}"/>Full Drop DDL</a></li>
-                                        <li><a href="/{{ model.name }}/{{ version.name }}/drop/{{ dialect.name }}/tables"/>Drop Tables Only</a></li>
-                                        <li><a href="/{{ model.name }}/{{ version.name }}/drop/{{ dialect.name }}/constraints"/>Drop Constraints Only</a></li>
-                                        <li><a href="/{{ model.name }}/{{ version.name }}/drop/{{ dialect.name }}/indexes"/>Drop Indexes Only</a></li>
-                                    </ul>
-                                </li>
-                            {% endfor %}
-                            </ul>
-                        </li>
-                        {% endif %}
-                        {% if delete %}
-                        <li><a href="/{{ model.name }}/{{ version.name }}/delete"/>Delete Data</a>
-                            <ul>
-                            {% for dialect in dialects %}
-                                <li><a href="/{{ model.name }}/{{ version.name }}/delete/{{ dialect.name }}"/>{{ dialect.pretty }}</a></li>
-                            {% endfor %}
-                            </ul>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </li>
-            {% endfor %}
-            </ul>
-        </li>
-    {% endfor %}
-    </ul>
+<a href="/"/>Data Models DDL and ERDs</a>
+<ul>
+{% for model in models %}
+    <li><a href="/{{ model.name }}"/>{{ model.pretty }}</a></li>
+{% endfor %}
+</ul>
 </body>
 </html>
