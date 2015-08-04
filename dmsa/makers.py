@@ -68,7 +68,8 @@ def make_constraint(constraint_type, constraint_json):
 
     elif constraint_type == 'uniques':
 
-        return UniqueConstraint(constraint_json['fields'], constraint_name)
+        return UniqueConstraint(*constraint_json['fields'],
+                                name=constraint_name)
 
 
 def make_column(field, not_null_flag=False):

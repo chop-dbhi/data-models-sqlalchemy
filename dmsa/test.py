@@ -36,9 +36,6 @@ def main(argv=None):
         for v in m['versions']:
 
             endpoints.append('/%s/%s/' % (m['name'], v['name']))
-            endpoints.append('/%s/%s/ddl/' % (m['name'], v['name']))
-            endpoints.append('/%s/%s/drop/' % (m['name'], v['name']))
-            endpoints.append('/%s/%s/delete/' % (m['name'], v['name']))
             endpoints.append('/%s/%s/erd/' % (m['name'], v['name']))
 
             for d in DIALECTS:

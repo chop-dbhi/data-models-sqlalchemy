@@ -1,14 +1,15 @@
 import sys
 import requests
-from sqlalchemy import create_engine, MetaData
-from sqlalchemy import Integer, Numeric, String
+from datetime import datetime
+from sqlalchemy import (create_engine, MetaData, Table, Column,
+                        Integer, Numeric, String, DateTime, text)
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.schema import (CreateTable, AddConstraint, CreateIndex,
-                               DropTable, DropConstraint, DropIndex)
-from sqlalchemy.schema import (ForeignKeyConstraint, CheckConstraint,
+                               DropTable, DropConstraint, DropIndex,
+                               ForeignKeyConstraint, CheckConstraint,
                                UniqueConstraint, PrimaryKeyConstraint)
 from dmsa import __version__
-from dmsa.settings import get_url
+from dmsa.settings import get_url, DMS_VERSION
 from dmsa.makers import make_model
 
 
@@ -107,9 +108,17 @@ def main(argv=None):
 
     engine = create_engine(args['<dialect>'] + '://')
 
+    INSERT = ("INSERT INTO version_history (operation, model, model_version, "
+              "dms_version, dmsa_version) VALUES ('{operation}', '"
+              + args['<model>'] + "', '" + args['<version>'] + "', '" +
+              DMS_VERSION + "', '" + __version__ + "');\n\n")
+
     output = []
 
     if args['--delete-data']:
+
+        output.append(INSERT.format(operation='delete data',
+                                    datetime=str(datetime.now())))
 
         tables = reversed(metadata.sorted_tables)
         output.extend(delete_data(tables, engine))
@@ -125,33 +134,63 @@ def main(argv=None):
     if not args['--xtables']:
 
         if not args['--drop']:
+
+            version_history = Table(
+                'version_history', MetaData(),
+                Column('datetime', DateTime(), primary_key=True,
+                       server_default=text('CURRENT_TIMESTAMP')),
+                Column('operation', String(24)),
+                Column('model', String(16)),
+                Column('model_version', String(16)),
+                Column('dms_version', String(16)),
+                Column('dmsa_version', String(16))
+            )
+
+            output.append(str(CreateTable(version_history).
+                              compile(dialect=engine.dialect)).strip())
+            output.append(';\n\n')
+
+            output.append(INSERT.format(operation='create tables'))
             tables = metadata.sorted_tables
             output.extend(table_ddl(tables, engine, False))
+
         else:
+
             tables = reversed(metadata.sorted_tables)
             output.extend(table_ddl(tables, engine, True))
+            output.insert(0, INSERT.format(operation='drop tables'))
 
     if not args['--xconstraints']:
 
         if not args['--drop']:
-            tables = metadata.sorted_tables
+
             output.append('\n')
+            output.append(INSERT.format(operation='create constraints'))
+            tables = metadata.sorted_tables
             output.extend(constraint_ddl(tables, engine, False))
+
         else:
+
             tables = reversed(metadata.sorted_tables)
             output.insert(0, '\n')
             output[0:0] = constraint_ddl(tables, engine, True)
+            output.insert(0, INSERT.format(operation='drop constraints'))
 
     if not args['--xindexes']:
 
         if not args['--drop']:
-            tables = metadata.sorted_tables
+
             output.append('\n')
+            output.append(INSERT.format(operation='create indexes'))
+            tables = metadata.sorted_tables
             output.extend(index_ddl(tables, engine, False))
+
         else:
+
             tables = reversed(metadata.sorted_tables)
             output.insert(0, '\n')
             output[0:0] = index_ddl(tables, engine, True)
+            output.insert(0, INSERT.format(operation='drop indexes'))
 
     output = ''.join(output)
 

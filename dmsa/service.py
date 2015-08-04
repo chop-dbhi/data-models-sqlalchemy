@@ -1,71 +1,73 @@
 import os
 import sys
-from copy import deepcopy
-from flask import Flask, Response, request, send_file, render_template
+from functools import wraps
+from flask import (Flask, Response, request, send_file, render_template,
+                   redirect, url_for, make_response)
 from dmsa import ddl, erd, __version__
-from dmsa.settings import MODELS, DIALECTS
+from dmsa.settings import MODELS, DIALECTS, DMS_VERSION
 
 app = Flask('dmsa')
 
 
-@app.route('/', defaults={'model': None, 'version': None})
-@app.route('/<model>/', defaults={'version': None})
-@app.route('/<model>/<version>/')
-def index_route(model, version):
-
-    models = deepcopy(MODELS)
-
-    if model:
-        models = [m for m in MODELS if m['name'] == model]
-
-    if version:
-        versions = [v for v in models[0]['versions'] if v['name'] == version]
-        return render_template('index.html', models=models, versions=versions,
-                               dialects=DIALECTS, erd=True, ddl=True,
-                               drop=True, delete=True)
-    else:
-        return render_template('index.html', models=models, dialects=DIALECTS,
-                               erd=True, ddl=True, drop=True, delete=True)
+def add_response_headers(headers={}):
+    """This decorator adds the headers passed in to the response"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            resp = make_response(f(*args, **kwargs))
+            h = resp.headers
+            for header, value in headers.items():
+                h[header] = value
+            return resp
+        return decorated_function
+    return decorator
 
 
-@app.route('/<model>/<version>/ddl/')
-def ddl_index_route(model, version):
-
-    models = MODELS
-    models = [m for m in MODELS if m['name'] == model]
-    versions = [v for v in models[0]['versions'] if v['name'] == version]
-
-    return render_template('index.html', models=models, versions=versions,
-                           dialects=DIALECTS, erd=False, ddl=True, drop=False,
-                           delete=False)
+def dmsa_version(f):
+    """This decorator passes User-Agent: DMSA/<version>
+    (+https://github.com/chop-dbhi/data-models-sqlalchemy)"""
+    return add_response_headers(
+        {'User-Agent':
+         'DMSA/{0} (+https://github.com/chop-dbhi/data-models-sqlalchemy)'.
+         format(__version__)})(f)
 
 
-@app.route('/<model>/<version>/drop/')
-def drop_index_route(model, version):
-
-    models = MODELS
-    models = [m for m in MODELS if m['name'] == model]
-    versions = [v for v in models[0]['versions'] if v['name'] == version]
-
-    return render_template('index.html', models=models, versions=versions,
-                           dialects=DIALECTS, erd=False, ddl=False, drop=True,
-                           delete=False)
+@app.route('/')
+@dmsa_version
+def index_route():
+    return render_template('index.html', models=MODELS)
 
 
-@app.route('/<model>/<version>/delete/')
-def delete_index_route(model, version):
+@app.route('/<model_name>/')
+@dmsa_version
+def model_route(model_name):
 
-    models = MODELS
-    models = [m for m in MODELS if m['name'] == model]
-    versions = [v for v in models[0]['versions'] if v['name'] == version]
+    for model in MODELS:
+        if model['name'] == model_name:
+            break
 
-    return render_template('index.html', models=models, versions=versions,
-                           dialects=DIALECTS, erd=False, ddl=False, drop=False,
-                           delete=True)
+    return render_template('model.html', model=model)
+
+
+@app.route('/<model_name>/<version_name>/')
+@dmsa_version
+def version_route(model_name, version_name):
+
+    for model in MODELS:
+        if model['name'] == model_name:
+            break
+
+    for version in model['versions']:
+        if version['name'] == version_name:
+            break
+
+    return render_template('version.html', model=model, version=version,
+                           dialects=DIALECTS)
 
 
 @app.route('/<model>/<version>/ddl/<dialect>/', defaults={'elements': 'all'})
 @app.route('/<model>/<version>/ddl/<dialect>/<elements>/')
+@dmsa_version
 def ddl_route(model, version, dialect, elements):
 
     args = []
@@ -89,6 +91,7 @@ def ddl_route(model, version, dialect, elements):
 
 @app.route('/<model>/<version>/drop/<dialect>/', defaults={'elements': 'all'})
 @app.route('/<model>/<version>/drop/<dialect>/<elements>/')
+@dmsa_version
 def drop_route(model, version, dialect, elements):
 
     args = []
@@ -111,6 +114,7 @@ def drop_route(model, version, dialect, elements):
 
 
 @app.route('/<model>/<version>/delete/<dialect>/')
+@dmsa_version
 def delete_route(model, version, dialect):
 
     args = ['-r', '-x', model, version, dialect]
@@ -122,11 +126,13 @@ def delete_route(model, version, dialect):
 
 
 @app.route('/<model>/<version>/erd/')
-def erd_route(model, version):
+@dmsa_version
+def create_erd_route(model, version):
 
     ext = request.args.get('format') or 'png'
 
-    filename = '%s_%s.%s' % (model, version, ext)
+    filename = '{0}_{1}_dms_{2}_dmsa_{3}.{4}'.format(
+        model, version, DMS_VERSION, __version__, ext)
     filepath = '/'.join([app.instance_path, filename])
 
     try:
@@ -135,6 +141,16 @@ def erd_route(model, version):
         pass
 
     erd.main([model, version, filepath])
+
+    return redirect(url_for('erd_route', model=model, version=version,
+                            filename=filename))
+
+
+@app.route('/<model>/<version>/erd/<filename>')
+@dmsa_version
+def erd_route(model, version, filename):
+
+    filepath = '/'.join([app.instance_path, filename])
 
     return send_file(filepath)
 

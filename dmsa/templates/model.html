@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Data Models DDL and ERDs</title>
+</head>
+<body>
+<a href="/"/>Data Models DDL and ERDs</a> > <a href="/{{ model.name }}"/>{{ model.pretty }}</a>
+<ul>
+{% for version in model.versions %}
+    <li><a href="/{{ model.name }}/{{ version.name }}"/>{{ version.name }}</a></li>
+{% endfor %}
+</ul>
+</body>
+</html>

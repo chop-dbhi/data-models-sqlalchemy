@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Data Models DDL and ERDs</title>
+</head>
+<body>
+<a href="/"/>Data Models DDL and ERDs</a> > <a href="/{{ model.name }}"/>{{ model.pretty }}</a> > <a href="/{{ model.name }}/{{ version.name }}"/>{{ version.name }}</a>
+<ul>
+    <li><a href="/{{ model.name }}/{{ version.name }}/erd/">ERD</a></li>
+    <li>Creation DDL
+        <ul>
+        {% for dialect in dialects %}
+            <li>{{ dialect.pretty }}
+                <ul>
+                    <li><a href="/{{ model.name }}/{{ version.name }}/ddl/{{ dialect.name }}"/>Full DDL</a></li>
+                    <li><a href="/{{ model.name }}/{{ version.name }}/ddl/{{ dialect.name }}/tables"/>Tables Only</a></li>
+                    <li><a href="/{{ model.name }}/{{ version.name }}/ddl/{{ dialect.name }}/constraints"/>Constraints Only</a></li>
+                    <li><a href="/{{ model.name }}/{{ version.name }}/ddl/{{ dialect.name }}/indexes"/>Indexes Only</a></li>
+                </ul>
+            </li>
+        {% endfor %}
+        </ul>
+    </li>
+    <li>Drop DDL
+        <ul>
+        {% for dialect in dialects %}
+            <li>{{ dialect.pretty }}
+                <ul>
+                    <li><a href="/{{ model.name }}/{{ version.name }}/drop/{{ dialect.name }}"/>Full Drop DDL</a></li>
+                    <li><a href="/{{ model.name }}/{{ version.name }}/drop/{{ dialect.name }}/tables"/>Drop Tables Only</a></li>
+                    <li><a href="/{{ model.name }}/{{ version.name }}/drop/{{ dialect.name }}/constraints"/>Drop Constraints Only</a></li>
+                    <li><a href="/{{ model.name }}/{{ version.name }}/drop/{{ dialect.name }}/indexes"/>Drop Indexes Only</a></li>
+                </ul>
+            </li>
+        {% endfor %}
+        </ul>
+    </li>
+    <li>Delete Data
+        <ul>
+        {% for dialect in dialects %}
+            <li><a href="/{{ model.name }}/{{ version.name }}/delete/{{ dialect.name }}"/>{{ dialect.pretty }}</a></li>
+        {% endfor %}
+        </ul>
+    </li>
+</ul>
+</body>
+</html>
