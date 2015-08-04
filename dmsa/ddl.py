@@ -9,7 +9,7 @@ from sqlalchemy.schema import (CreateTable, AddConstraint, CreateIndex,
                                ForeignKeyConstraint, CheckConstraint,
                                UniqueConstraint, PrimaryKeyConstraint)
 from dmsa import __version__
-from dmsa.settings import get_url
+from dmsa.settings import get_url, DMS_VERSION
 from dmsa.makers import make_model
 
 
@@ -109,8 +109,9 @@ def main(argv=None):
     engine = create_engine(args['<dialect>'] + '://')
 
     INSERT = ("INSERT INTO version_history (operation, model, model_version, "
-              "dmsa_version) VALUES ('{operation}', '" + args['<model>'] +
-              "', '" + args['<version>'] + "', '" + __version__ + "');\n\n")
+              "dms_version, dmsa_version) VALUES ('{operation}', '"
+              + args['<model>'] + "', '" + args['<version>'] + "', '" +
+              DMS_VERSION + "', '" + __version__ + "');\n\n")
 
     output = []
 
@@ -141,6 +142,7 @@ def main(argv=None):
                 Column('operation', String(24)),
                 Column('model', String(16)),
                 Column('model_version', String(16)),
+                Column('dms_version', String(16)),
                 Column('dmsa_version', String(16))
             )
 

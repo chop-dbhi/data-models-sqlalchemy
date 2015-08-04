@@ -34,7 +34,11 @@ DIALECTS = [
     }
 ]
 
-models_json = requests.get(MODELS_URL).json()
+models_request = requests.get(MODELS_URL)
+
+models_json = models_request.json()
+
+DMS_VERSION = models_request.headers['User-Agent'].split(' ')[0].split('/')[1]
 
 MODELS = []
 
