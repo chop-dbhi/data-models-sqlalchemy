@@ -2,7 +2,7 @@
 
 [![Circle CI](https://circleci.com/gh/chop-dbhi/data-models-sqlalchemy/tree/master.svg?style=svg)](https://circleci.com/gh/chop-dbhi/data-models-sqlalchemy/tree/master)
 
-SQLAlchemy models and DDL and ERD generation for chop-dbhi/data-models style JSON endpoints.
+SQLAlchemy models and DDL and ERD generation for [chop-dbhi/data-models-service](https://github.com/chop-dbhi/data-models-service) style JSON endpoints.
 
 Web service available at http://dmsa.a0b.io/
 
@@ -17,7 +17,7 @@ pip install dmsa
 In python:
 
 ```python
-from dmsa.omop.v5.models import Base
+from dmsa.omop.v5_0_0.models import Base
 
 for tbl in Base.metadata.sorted_tables():
     print tbl.name
@@ -26,22 +26,22 @@ for tbl in Base.metadata.sorted_tables():
 Or:
 
 ```python
-from dmsa.pedsnet.v2.models import Person, VisitPayer
+from dmsa.pedsnet.v2_0_0.models import Person, VisitPayer
 
 print VisitPayer.columns
 ```
 
 These models are dynamically generated at runtime from JSON endpoints provided by chop-dbhi/data-models-service, which reads data stored in chop-dbhi/data-models. It should be simple to add modules for any additional data models that become available, but the currently provided ones are:
 
-- **OMOP V4** at `omop.v4.models`
-- **OMOP V5** at `omop.v5.models`
-- **PEDSnet V1** at `pedsnet.v1.models`
-- **PEDSnet V2** at `pedsnet.v2.models`
-- **i2b2 V1.7** at `i2b2.v1_7.models`
-- **i2b2 PEDSnet V2** at `i2b2.pedsnet.v2.models`
-- **PCORnet V1** at `pcornet.v1.models`
-- **PCORnet V2** at `pcornet.v2.models`
-- **PCORnet V3** at `pcornet.v3.models`
+- **OMOP V4** at `omop.v4_0_0.models`
+- **OMOP V5** at `omop.v5_0_0.models`
+- **PEDSnet V1** at `pedsnet.v1_0_0.models`
+- **PEDSnet V2** at `pedsnet.v2_0_0.models`
+- **i2b2 V1.7** at `i2b2.v1_7_0.models`
+- **i2b2 PEDSnet V2** at `i2b2.pedsnet.v2_0_0.models`
+- **PCORnet V1** at `pcornet.v1_0_0.models`
+- **PCORnet V2** at `pcornet.v2_0_0.models`
+- **PCORnet V3** at `pcornet.v3_0_0.models`
 
 ## DDL and ERD Generation
 
@@ -71,19 +71,19 @@ docker run --rm dbhi/data-models-sqlalchemy ddl -h
 Generate OMOP V5 creation DDL for Oracle:
 
 ```sh
-docker run --rm dbhi/data-models-sqlalchemy ddl omop v5 oracle
+docker run --rm dbhi/data-models-sqlalchemy ddl omop 5.0.0 oracle
 ```
 
 Generate OMOP V5 drop DDL for Oracle:
 
 ```sh
-docker run --rm dbhi/data-models-sqlalchemy ddl -d omop v5 oracle
+docker run --rm dbhi/data-models-sqlalchemy ddl -d omop 5.0.0 oracle
 ```
 
 Generate OMOP V5 data deletion DML for Oracle:
 
 ```sh
-docker run --rm dbhi/data-models-sqlalchemy ddl -x omop v5 oracle
+docker run --rm dbhi/data-models-sqlalchemy ddl -x omop 5.0.0 oracle
 ```
 
 Usage for ERD generation:
@@ -92,10 +92,10 @@ Usage for ERD generation:
 docker run --rm dbhi/data-models-sqlalchemy erd -h
 ```
 
-Generate i2b2 PEDSnet V2 ERD (the image will land at `./erd/i2b2_pedsnet_v2_erd.png`):
+Generate i2b2 PEDSnet V2 ERD (the image will land at `./erd/i2b2_pedsnet_2.0.0_erd.png`):
 
 ```sh
-docker run --rm -v $(pwd)/erd:/erd dbhi/data-models-sqlalchemy erd i2b2_pedsnet v2 /erd/i2b2_pedsnet_v2_erd.png
+docker run --rm -v $(pwd)/erd:/erd dbhi/data-models-sqlalchemy erd i2b2_pedsnet 2.0.0 /erd/i2b2_pedsnet_2.0.0_erd.png
 ```
 
 The `graphviz` graphing package supports a number of other output formats, listed here (link pending), which are interpreted from the passed extension.
@@ -134,19 +134,19 @@ dmsa ddl -h
 Generate OMOP V5 creation DDL for Oracle:
 
 ```sh
-dmsa ddl omop v5 oracle
+dmsa ddl omop 5.0.0 oracle
 ```
 
 Generate OMOP V5 drop DDL for Oracle:
 
 ```sh
-dmsa ddl -d omop v5 oracle
+dmsa ddl -d omop 5.0.0 oracle
 ```
 
 Generate OMOP V5 data deletion DML for Oracle:
 
 ```sh
-dmsa ddl -x omop v5 oracle
+dmsa ddl -x omop 5.0.0 oracle
 ```
 
 Usage for ERD generation:
@@ -155,11 +155,11 @@ Usage for ERD generation:
 dmsa erd -h
 ```
 
-Generate i2b2 PEDSnet V2 ERD (the image will land at `./erd/i2b2_pedsnet_v2_erd.png`):
+Generate i2b2 PEDSnet V2 ERD (the image will land at `./erd/i2b2_pedsnet_2.0.0_erd.png`):
 
 ```sh
 mkdir erd
-dmsa erd i2b2_pedsnet v2 ./erd/i2b2_pedsnet_v2_erd.png
+dmsa erd i2b2_pedsnet 2.0.0 ./erd/i2b2_pedsnet_2.0.0_erd.png
 ```
 
 ## Web Service
