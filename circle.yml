@@ -14,6 +14,8 @@ checkout:
     - ./ci/git-set-file-times.pl
 
 dependencies:
+  pre:
+    - pip install awscli wheel twine
   cache_directories:
     - "~/docker"
   post:
@@ -35,7 +37,6 @@ deployment:
   all:
     branch: /.*/
     commands:
-      - pip install awscli wheel twine
       - sudo curl -L -o /usr/bin/jq
         'http://stedolan.github.io/jq/download/linux64/jq';
         sudo chmod 0755 /usr/bin/jq

@@ -75,12 +75,26 @@ else
     else
 
         echo "Creating new ${BRANCH} branch deployment on Elastic Beanstalk."
+
+        # Set up postfix for send only email service.
+        sudo apt-get update
+        sudo debconf-set-selections <<< \
+            "postfix postfix/mailname string `hostname`.circleci.com"
+        sudo debconf-set-selections <<< \
+            "postfix postfix/main_mailer_type string 'Internet Site'"
+        sudo DEBIAN_FRONTEND=noninteractive apt-get -y install postfix
+        sudo apt-get install -y mailutils
+
+        # Send attempt notification email.
+        TO_EMAILS=(${NOTIFICATION_EMAIL_ADDR})
         sed -e "s/<APP_NAME>/${APP_NAME}/" \
             -e "s/<AWS_ENV_NAME>/${AWS_ENV_NAME}/" \
             < "${DIRNAME}/before_create_env.eml.template" | \
             mail -s "New AWS ElasticBeanstalk Environment Creation Attemp" \
-                -r "${NOTIFICATION_EMAIL_FROM}"
-                ${NOTIFICATION_EMAIL_ADDR}
+                -r "${NOTIFICATION_EMAIL_FROM}" \
+                "${TO_EMAILS[@]}"
+
+        # Create new AWS environment.
         aws --region=us-east-1 elasticbeanstalk create-environment \
             --application-name "${APP_NAME}" \
             --environment-name "${AWS_ENV_NAME}" \
@@ -144,12 +158,16 @@ case "${AWSHEALTH}" in
         ;;
 esac
 
+# If an AWS environment was created...
 if [ "${BRANCH_EXISTS}" = 0 ]; then
+
+    # Send a creation complete notification email.
     sed -e "s/<APP_NAME>/${APP_NAME}/" \
         -e "s/<AWS_ENV_NAME>/${AWS_ENV_NAME}/" \
         -e "s/<AWSHEALTH>/${AWSHEALTH}/" \
         < "${DIRNAME}/after_create_env.eml.template" | \
         mail -s "New AWS ElasticBeanstalk Environment Created" \
-            -r "${NOTIFICATION_EMAIL_FROM}"
-            ${NOTIFICATION_EMAIL_ADDR}
+            -r "${NOTIFICATION_EMAIL_FROM}" \
+            "${TO_EMAILS[@]}"
+
 fi
