@@ -1,0 +1,3 @@
+The DBHi TiU continuous integration and deployment workflow for <APP_NAME> is attempting to create a new AWS ElasticBeanstalk environment named <AWS_ENV_NAME>. It should be automatically tagged with the appropriate billing codes.
+
+You will receive another email after the environment has been successfully created.

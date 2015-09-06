@@ -7,12 +7,15 @@ machine:
     BUILD_NUM: "${CIRCLE_BUILD_NUM}"
     COMMIT_SHA1: "${CIRCLE_SHA1}"
     BRANCH: "${CIRCLE_BRANCH}"
+    APP_NAME: "${CIRCLE_PROJECT_REPONAME}"
 
 checkout:
   post:
     - ./ci/git-set-file-times.pl
 
 dependencies:
+  pre:
+    - pip install awscli wheel twine
   cache_directories:
     - "~/docker"
   post:
@@ -34,7 +37,6 @@ deployment:
   all:
     branch: /.*/
     commands:
-      - pip install awscli wheel twine
       - sudo curl -L -o /usr/bin/jq
         'http://stedolan.github.io/jq/download/linux64/jq';
         sudo chmod 0755 /usr/bin/jq
