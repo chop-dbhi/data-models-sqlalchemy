@@ -1,0 +1,26 @@
+[run]
+branch = true
+omit =
+    # Exclude main.py, which just passes to submodules.
+    */main.py
+    # Exclude container integration testing code.
+    */container_integration.py
+    # Exclude template html files.
+    *html
+
+[report]
+exclude_lines =
+    # Exclude defensive test assertions.
+    raise AssertionError
+    # Exclude final version determination.
+    if __version_info__\[.releaselevel.\] .= .final. and not short:
+    # Exclude __main__ usage.
+    if __name__ == .__main__.:
+    # Exclude ddl stdout and return.
+    sys.stdout.write\(output\)
+    return$
+    # Exclude ddl compilation tweaks.
+    def _compile
+partial_branches =
+    # Exclude ddl stdout or return determination.
+    if args\[.--return.\]:
