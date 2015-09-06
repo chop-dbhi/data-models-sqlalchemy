@@ -7,6 +7,7 @@ machine:
     BUILD_NUM: "${CIRCLE_BUILD_NUM}"
     COMMIT_SHA1: "${CIRCLE_SHA1}"
     BRANCH: "${CIRCLE_BRANCH}"
+    APP_NAME: "${CIRCLE_PROJECT_REPONAME}"
 
 checkout:
   post:

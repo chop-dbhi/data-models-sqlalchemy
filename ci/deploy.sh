@@ -4,31 +4,30 @@ DIRNAME="$(dirname $0)"
 DIRNAME="$( cd ${DIRNAME} && pwd )"
 cd "${DIRNAME}/../"
 VERSION="$(${DIRNAME}/version.sh)"
-EB_BUCKET=elasticbeanstalk-us-east-1-248182584102
 
 echo "Pushing image to Docker Hub registry."
 docker login -e "${DOCKER_EMAIL}" -u "${DOCKER_USER}" -p "${DOCKER_PASS}"
-docker push "dbhi/data-models-sqlalchemy:${VERSION//+/-}"
+docker push "dbhi/${APP_NAME}:${VERSION//+/-}"
 
 echo "Creating new Elastic Beanstalk version."
 DOCKERRUN_FILE="${VERSION-Dockerrun.aws.json}"
 sed "s/<TAG>/${VERSION//+/-}/" < "${DIRNAME}/Dockerrun.aws.json.template" > \
     "${DOCKERRUN_FILE}"
 aws --region=us-east-1 s3 cp "${DOCKERRUN_FILE}" \
-    "s3://${EB_BUCKET}/${DOCKERRUN_FILE}"
+    "s3://${AWS_S3_BUCKET}/${DOCKERRUN_FILE}"
 aws --region=us-east-1 elasticbeanstalk create-application-version \
-    --application-name data-models-sqlalchemy \
+    --application-name "${APP_NAME}" \
     --version-label "${VERSION}" \
-    --source-bundle "S3Bucket=${EB_BUCKET},S3Key=${DOCKERRUN_FILE}"
+    --source-bundle "S3Bucket=${AWS_S3_BUCKET},S3Key=${DOCKERRUN_FILE}"
 
 # If commit is on master branch...
 if [ "${BRANCH}" = "master" ]; then
 
     echo "Updating tip of development deployment on Elastic Beanstalk."
-    AWSNAME="dmsa-dev"
+    AWS_ENV_NAME="${DEV_AWS_ENV_NAME}"
     aws --region=us-east-1 elasticbeanstalk update-environment \
-        --environment-name "${AWSNAME}" \
-        --version-label $VERSION
+        --environment-name "${AWS_ENV_NAME}" \
+        --version-label "${VERSION}"
 
     # If final version...
     if [ ${#VERSION} -lt 6 ]; then
@@ -48,9 +47,9 @@ if [ "${BRANCH}" = "master" ]; then
         twine upload -u "${PYPI_USER}" -p "${PYPI_PASS}" dist/*
     
         echo "Updating production deployment on Elastic Beanstalk."
-        AWSNAME="dmsa"
+        AWS_ENV_NAME="${PROD_AWS_ENV_NAME}"
         aws --region=us-east-1 elasticbeanstalk update-environment \
-            --environment-name "${AWSNAME}" \
+            --environment-name "${AWS_ENV_NAME}" \
             --version-label "${VERSION}"
     
     fi
@@ -58,10 +57,10 @@ if [ "${BRANCH}" = "master" ]; then
 # If not on master branch...
 else
 
-    AWSNAME="dmsa-${BRANCH}"
+    AWS_ENV_NAME="${PROD_AWS_ENV_NAME}-${BRANCH}"
     BRANCH_EXISTS=$(aws --region=us-east-1 elasticbeanstalk \
-        describe-environments --application-name data-models-sqlalchemy \
-        --environment-name "${AWSNAME}" | jq --raw-output \
+        describe-environments --application-name "${APP_NAME}" \
+        --environment-name "${AWS_ENV_NAME}" | jq --raw-output \
         '.Environments | length')
 
     # If branch environment already exists...
@@ -69,19 +68,28 @@ else
 
         echo "Updating ${BRANCH} branch deployment on Elastic Beanstalk."
         aws --region=us-east-1 elasticbeanstalk update-environment \
-            --environment-name "${AWSNAME}" \
+            --environment-name "${AWS_ENV_NAME}" \
             --version-label "${VERSION}"
 
     # If branch environment doesn't exist yet...
     else
 
         echo "Creating new ${BRANCH} branch deployment on Elastic Beanstalk."
+        sed -e "s/<APP_NAME>/${APP_NAME}/" \
+            -e "s/<AWS_ENV_NAME>/${AWS_ENV_NAME}/" \
+            < "${DIRNAME}/before_create_env.eml.template" | \
+            mail -s "New AWS ElasticBeanstalk Environment Creation Attemp" \
+                -r "${NOTIFICATION_EMAIL_FROM}"
+                ${NOTIFICATION_EMAIL_ADDR}
         aws --region=us-east-1 elasticbeanstalk create-environment \
-            --application-name data-models-sqlalchemy \
-            --environment-name "${AWSNAME}" \
-            --cname-prefix "${AWSNAME}" \
+            --application-name "${APP_NAME}" \
+            --environment-name "${AWS_ENV_NAME}" \
+            --cname-prefix "${AWS_ENV_NAME}" \
             --version-label "${VERSION}" \
-            --template-name data-models-sa-conf
+            --template-name "${AWS_ENV_TEMPLATE}" \
+            --tags "Key=billing:owner,Value=${BILLING_OWNER}" \
+            "Key=billing:actcode,Value=${BILLING_ACTCODE}" \
+            "Key=billing:description,Value=${BILLING_DESCRIPTION}"
 
     fi
 
@@ -89,23 +97,23 @@ fi
 
 echo "Adding pending deploy status to GitHub commit with EB console URL."
 AWSID=$(aws --region=us-east-1 elasticbeanstalk describe-environments \
-    --application-name data-models-sqlalchemy \
-    --environment-name "${AWSNAME}" | \
+    --application-name "${APP_NAME}" \
+    --environment-name "${AWS_ENV_NAME}" | \
     jq --raw-output '.Environments[0].EnvironmentId')
 sed -e "s/<AWSID>/${AWSID}/" < "${DIRNAME}/pending_status.json.template" > \
     status.json
 curl -u "username:${GITHUB_TOKEN}" -X POST \
     -H "Content-Type: 'application/json'" -d @status.json \
-    "https://api.github.com/repos/chop-dbhi/data-models-sqlalchemy/statuses/${COMMIT_SHA1}"
+    "https://api.github.com/repos/chop-dbhi/${APP_NAME}/statuses/${COMMIT_SHA1}"
 
 AWSHEALTH="Grey"
 while [ "${AWSHEALTH}" = "Grey" ]; do
-    echo "Waiting for EB environment ${AWSNAME} to deploy."
+    echo "Waiting for EB environment ${AWS_ENV_NAME} to deploy."
     echo "Current environment health is ${AWSHEALTH}."
     AWSHEALTH=$(aws --region=us-east-1 \
         elasticbeanstalk describe-environments \
-        --application-name data-models-sqlalchemy \
-        --environment-name "${AWSNAME}" | \
+        --application-name "${APP_NAME}" \
+        --environment-name "${AWS_ENV_NAME}" | \
         jq --raw-output '.Environments[0].Health')
     sleep 30
 done
@@ -118,20 +126,30 @@ case "${AWSHEALTH}" in
             < "${DIRNAME}/fail_status.json.template" > status.json
         curl -u "username:${GITHUB_TOKEN}" -X POST \
             -H "Content-Type: 'application/json'" -d @status.json \
-            "https://api.github.com/repos/chop-dbhi/data-models-sqlalchemy/statuses/${COMMIT_SHA1}"
+            "https://api.github.com/repos/chop-dbhi/${APP_NAME}/statuses/${COMMIT_SHA1}"
         ;;
     "Yellow")
         sed -e "s/<AWSID>/${AWSID}/" \
             < "${DIRNAME}/error_status.json.template" > status.json
         curl -u "username:${GITHUB_TOKEN}" -X POST \
             -H "Content-Type: 'application/json'" -d @status.json \
-            "https://api.github.com/repos/chop-dbhi/data-models-sqlalchemy/statuses/${COMMIT_SHA1}"
+            "https://api.github.com/repos/chop-dbhi/${APP_NAME}/statuses/${COMMIT_SHA1}"
         ;;
     "Green")
-        sed -e "s/<AWSNAME>/${AWSNAME}/" \
+        sed -e "s/<AWS_ENV_NAME>/${AWS_ENV_NAME}/" \
             < "${DIRNAME}/success_status.json.template" > status.json
         curl -u "username:${GITHUB_TOKEN}" -X POST \
             -H "Content-Type: 'application/json'" -d @status.json \
-            "https://api.github.com/repos/chop-dbhi/data-models-sqlalchemy/statuses/${COMMIT_SHA1}"
+            "https://api.github.com/repos/chop-dbhi/${APP_NAME}/statuses/${COMMIT_SHA1}"
         ;;
 esac
+
+if [ "${BRANCH_EXISTS}" = 0 ]; then
+    sed -e "s/<APP_NAME>/${APP_NAME}/" \
+        -e "s/<AWS_ENV_NAME>/${AWS_ENV_NAME}/" \
+        -e "s/<AWSHEALTH>/${AWSHEALTH}/" \
+        < "${DIRNAME}/after_create_env.eml.template" | \
+        mail -s "New AWS ElasticBeanstalk Environment Created" \
+            -r "${NOTIFICATION_EMAIL_FROM}"
+            ${NOTIFICATION_EMAIL_ADDR}
+fi
