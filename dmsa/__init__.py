@@ -8,8 +8,8 @@ if sha:
 __version_info__ = {
     'major': 0,
     'minor': 5,
-    'micro': 1,
-    'releaselevel': 'final',
+    'micro': 2,
+    'releaselevel': 'beta',
     'serial': serial,
     'sha': sha
 }
@@ -64,15 +64,20 @@ for model in MODELS:
 
         version_name = 'v' + version['name'].replace('.', '_')
         version_path = path + '.' + version_name
-
         version_module = imp.new_module(version_path)
         version_module.__file__ = '(dynamically constructed)'
         version_module.__dict__['__package__'] = 'dmsa'
         setattr(module, version_name, version_module)
+        sys.modules[version_path] = version_module
+
+        models_path = version_path + '.models'
+        models_module = imp.new_module(models_path)
+        models_module.__file__ = '(dynamically constructed)'
+        models_module.__dict__['__package__'] = 'dmsa'
+        setattr(version_module, 'models', models_module)
 
         code = version_module_code.format(name=model['name'],
                                           version=version['name'])
 
-        exec(code, version_module.__dict__)
-
-        sys.modules[version_path] = version_module
+        exec(code, models_module.__dict__)
+        sys.modules[models_path] = models_module

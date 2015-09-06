@@ -31,14 +31,14 @@ from dmsa.pedsnet.v2_0_0.models import Person, VisitPayer
 print VisitPayer.columns
 ```
 
-These models are dynamically generated at runtime from JSON endpoints provided by chop-dbhi/data-models-service, which reads data stored in chop-dbhi/data-models. It should be simple to add modules for any additional data models that become available, but the currently provided ones are:
+These models are dynamically generated at runtime from JSON endpoints provided by chop-dbhi/data-models-service, which reads data stored in chop-dbhi/data-models. Each data model version available on the service is included in a dynamically generated python module. At the time of writing, the following are available. Any added to the service will use the same naming conventions.
 
 - **OMOP V4** at `omop.v4_0_0.models`
 - **OMOP V5** at `omop.v5_0_0.models`
 - **PEDSnet V1** at `pedsnet.v1_0_0.models`
 - **PEDSnet V2** at `pedsnet.v2_0_0.models`
 - **i2b2 V1.7** at `i2b2.v1_7_0.models`
-- **i2b2 PEDSnet V2** at `i2b2.pedsnet.v2_0_0.models`
+- **i2b2 PEDSnet V2** at `i2b2_pedsnet.v2_0_0.models`
 - **PCORnet V1** at `pcornet.v1_0_0.models`
 - **PCORnet V2** at `pcornet.v2_0_0.models`
 - **PCORnet V3** at `pcornet.v3_0_0.models`
