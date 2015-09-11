@@ -1,8 +1,49 @@
 #!/bin/bash
 
+# This script deploys a Dockerized python app image to Docker Hub, creates a
+# running ElasticBeanstalk deployment on AWS, and, if the version is final,
+# tags a release on GitHub and pushes the package to PyPi.
+# 
+# If the commit is on master and the version is final, the script
+# deploys the app to the production AWS environment. If the commit is on
+# master with a non-final version, the dev AWS environment is used. If the
+# commit is not on master, a branch-name-derived environment is created, if
+# necessary, and used.
+#
+# Notifications about the status of deployments to AWS are sent to GitHub as
+# commit statuses. Notifications about creation of new AWS environments are
+# emailed.
+#
+# The following environment variables must be set in order for the script to
+# succeed (use the environment variable project config on CircleCI):
+# 
+# DOCKER_EMAIL, DOCKER_USER, and DOCKER_PASS to authenticate with Docker Hub.
+# APP_NAME to identify the app on Docker Hub and also AWS EB.
+# AWS_S3_BUCKET to identify the place where new AWS EB app version files
+# should be uploaded.
+# DEV_AWS_ENV_NAME and PROD_AWS_ENV_NAME to identify existing AWS EB envs.
+# NOTIFICATION_EMAIL_ADDR and NOTIFICATION_EMAIL_FROM to specify email
+# receivers (separated by spaces) and a sender, respectively.
+# AWS_ENV_TEMPLATE to identify a template AWS env config for new AWS envs.
+# BILLING_OWNER, BILLING_ACTCODE, and BILLING_DESCRIPTION to add billing tags
+# to new AWS envs.
+# GITHUB_TOKEN, which is a GitHub user auth token, in order to post commit
+# statuses.
+#
+# The script was built to run on CircleCI, but could potentially be run in
+# other environments, if the BRANCH, COMMIT_SHA1, and environment variables
+# from circle.yml are set another way and the dependencies for circle.yml are
+# installed in another way (this is untested advice).
+
+
+# Get dirname of this script relative to runtime cwd.
 DIRNAME="$(dirname $0)"
 DIRNAME="$( cd ${DIRNAME} && pwd )"
+
+# Change runtime cwd to parent directory.
 cd "${DIRNAME}/../"
+
+# Get app version.
 VERSION="$(${DIRNAME}/version.sh)"
 
 echo "Pushing image to Docker Hub registry."

@@ -1,4 +1,7 @@
 *egg-info
 *pyc
+*swp
 instance
+.coverage
+cover
 dist

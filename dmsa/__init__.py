@@ -2,14 +2,13 @@ import os
 
 serial = os.environ.get('BUILD_NUM') or '0'
 sha = os.environ.get('COMMIT_SHA1') or '0'
-if sha:
-    sha = sha[0:8]
+sha = sha[0:8]
 
 __version_info__ = {
     'major': 0,
     'minor': 5,
-    'micro': 4,
-    'releaselevel': 'final',
+    'micro': 6,
+    'releaselevel': 'beta',
     'serial': serial,
     'sha': sha
 }
@@ -24,10 +23,6 @@ def get_version(short=False):
     return ''.join(vers)
 
 __version__ = get_version()
-
-import sys
-import imp
-from dmsa.settings import MODELS
 
 version_module_code = """
 import requests
@@ -51,33 +46,40 @@ for table in metadata.tables.values():
     globals()[cls_name] = table
 """
 
-for model in MODELS:
 
-    path = 'dmsa.' + model['name']
-    module = imp.new_module(path)
-    module.__file__ = '(dynamically constructed)'
-    module.__dict__['__package__'] = 'dmsa'
-    locals()[model['name']] = module
-    sys.modules[path] = module
+def add_model_modules():
 
-    for version in model['versions']:
+    import sys
+    import imp
+    from dmsa.settings import MODELS
 
-        version_name = 'v' + version['name'].replace('.', '_')
-        version_path = path + '.' + version_name
-        version_module = imp.new_module(version_path)
-        version_module.__file__ = '(dynamically constructed)'
-        version_module.__dict__['__package__'] = 'dmsa'
-        setattr(module, version_name, version_module)
-        sys.modules[version_path] = version_module
+    for model in MODELS:
 
-        models_path = version_path + '.models'
-        models_module = imp.new_module(models_path)
-        models_module.__file__ = '(dynamically constructed)'
-        models_module.__dict__['__package__'] = 'dmsa'
-        setattr(version_module, 'models', models_module)
+        path = 'dmsa.' + model['name']
+        module = imp.new_module(path)
+        module.__file__ = '(dynamically constructed)'
+        module.__dict__['__package__'] = 'dmsa'
+        locals()[model['name']] = module
+        sys.modules[path] = module
 
-        code = version_module_code.format(name=model['name'],
-                                          version=version['name'])
+        for version in model['versions']:
 
-        exec(code, models_module.__dict__)
-        sys.modules[models_path] = models_module
+            version_name = 'v' + version['name'].replace('.', '_')
+            version_path = path + '.' + version_name
+            version_module = imp.new_module(version_path)
+            version_module.__file__ = '(dynamically constructed)'
+            version_module.__dict__['__package__'] = 'dmsa'
+            setattr(module, version_name, version_module)
+            sys.modules[version_path] = version_module
+
+            models_path = version_path + '.models'
+            models_module = imp.new_module(models_path)
+            models_module.__file__ = '(dynamically constructed)'
+            models_module.__dict__['__package__'] = 'dmsa'
+            setattr(version_module, 'models', models_module)
+
+            code = version_module_code.format(name=model['name'],
+                                              version=version['name'])
+
+            exec(code, models_module.__dict__)
+            sys.modules[models_path] = models_module

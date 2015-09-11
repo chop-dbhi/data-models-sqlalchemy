@@ -1,6 +1,6 @@
 # Data Models SQLAlchemy
 
-[![Circle CI](https://circleci.com/gh/chop-dbhi/data-models-sqlalchemy/tree/master.svg?style=svg)](https://circleci.com/gh/chop-dbhi/data-models-sqlalchemy/tree/master)
+[![Circle CI](https://circleci.com/gh/chop-dbhi/data-models-sqlalchemy/tree/master.svg?style=svg)](https://circleci.com/gh/chop-dbhi/data-models-sqlalchemy/tree/master) [![Coverage Status](https://coveralls.io/repos/chop-dbhi/data-models-sqlalchemy/badge.svg?branch=master&service=github)](https://coveralls.io/github/chop-dbhi/data-models-sqlalchemy?branch=master)
 
 SQLAlchemy models and DDL and ERD generation for [chop-dbhi/data-models-service](https://github.com/chop-dbhi/data-models-service) style JSON endpoints.
 
@@ -17,6 +17,12 @@ pip install dmsa
 In python:
 
 ```python
+import dmsa
+
+# This uses an http request to the data-models-service.
+dmsa.add_model_modules()
+
+# Now the data model modules are built and available for import.
 from dmsa.omop.v5_0_0.models import Base
 
 for tbl in Base.metadata.sorted_tables():
@@ -26,6 +32,8 @@ for tbl in Base.metadata.sorted_tables():
 Or:
 
 ```python
+import dmsa
+dmsa.add_model_modules()
 from dmsa.pedsnet.v2_0_0.models import Person, VisitPayer
 
 print VisitPayer.columns

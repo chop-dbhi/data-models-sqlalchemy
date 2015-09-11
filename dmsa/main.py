@@ -1,11 +1,11 @@
 import sys
-from dmsa import ddl, erd, service, test, __version__
+from dmsa import ddl, erd, service, __version__
 
 
 def main():
     usage = """Data Model DDL and ERD Generator
 
-    Usage: main.py (ddl | erd | start | test) [<args>...]
+    Usage: main.py (ddl | erd | start) [<args>...]
 
     """  # noqa
 
@@ -25,8 +25,6 @@ def main():
         erd.main(sub_argv)
     elif args['start']:
         service.main(sub_argv)
-    elif args['test']:
-        test.main(sub_argv)
 
 
 if __name__ == '__main__':

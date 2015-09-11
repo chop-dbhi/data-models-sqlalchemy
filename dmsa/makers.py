@@ -31,7 +31,7 @@ def make_index(index_json):
 
     # Transform empty string to None in order to trigger auto-generation.
 
-    idx_name = index_json['name'] or None
+    idx_name = index_json.get('name')
 
     return Index(idx_name, *index_json['fields'])
 
@@ -48,7 +48,7 @@ def make_constraint(constraint_type, constraint_json):
 
     # Transform empty string to None in order to trigger auto-generation.
 
-    constraint_name = constraint_json['name'] or None
+    constraint_name = constraint_json.get('name')
 
     # Create the appropriate constraint class.
 
@@ -89,11 +89,11 @@ def make_column(field, not_null_flag=False):
     type_class = DATATYPE_MAP[type_string]
     type_kwargs = {}
 
-    if field['description']:
+    if field.get('description'):
         # This only exists in the ORM, will not generate a DB "comment".
         column_kwargs['doc'] = field['description']
 
-    if field['default']:
+    if field.get('default'):
         # The first is for the ORM, the second for the DB.
         column_kwargs['default'] = field['default']
         column_kwargs['server_default'] = field['default']
@@ -101,14 +101,12 @@ def make_column(field, not_null_flag=False):
     if not_null_flag:
         column_kwargs['nullable'] = False
 
-    if field['length']:
-        type_kwargs['length'] = field['length']
+    if type_class == String:
+        type_kwargs['length'] = field.get('length') or 255
 
-    if field['precision']:
-        type_kwargs['precision'] = field['precision']
-
-    if field['scale']:
-        type_kwargs['scale'] = field['scale']
+    if type_class == Numeric:
+        type_kwargs['precision'] = field.get('precision') or 20
+        type_kwargs['scale'] = field.get('scale') or 10
 
     column_kwargs['type_'] = type_class(**type_kwargs)
     return Column(**column_kwargs)
@@ -126,18 +124,11 @@ def make_table(table_json, metadata, not_nulls):
 
     `not_nulls` is a list of table-relevant not null constraints matching the
     chop-dbhi/data-models specified format.
-
-    `constraints` is a dictionary of constraint lists retrieved from the
-    chop-dbhi/data-models service or matching that format. Only relevant
-    constraints should be included.
-
-    `indexes` is a list of index objects retrieved from chop-dbhi/data-models
-    or similar. Only relevant indexes should be included.
     """
 
     table = Table(table_json['name'], metadata)
 
-    for field in table_json['fields']:
+    for field in table_json.get('fields', []):
 
         not_null_flag = False
 
@@ -147,6 +138,8 @@ def make_table(table_json, metadata, not_nulls):
                 break
 
         table.append_column(make_column(field, not_null_flag))
+
+    return table
 
 
 def make_model(data_model, metadata):
@@ -196,3 +189,5 @@ def make_model(data_model, metadata):
 
         table_name = index['table']
         metadata.tables[table_name].append_constraint(make_index(index))
+
+    return metadata
