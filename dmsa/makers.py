@@ -102,11 +102,11 @@ def make_column(field, not_null_flag=False):
         column_kwargs['nullable'] = False
 
     if type_class == String:
-        type_kwargs['length'] = field.get('length') or 255
+        type_kwargs['length'] = field.get('length') or 256
 
     if type_class == Numeric:
         type_kwargs['precision'] = field.get('precision') or 20
-        type_kwargs['scale'] = field.get('scale') or 10
+        type_kwargs['scale'] = field.get('scale') or 5
 
     column_kwargs['type_'] = type_class(**type_kwargs)
     return Column(**column_kwargs)
