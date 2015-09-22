@@ -83,7 +83,7 @@ def test_length_default():
 
     field_json = {'type': 'string', 'name': 'string'}
     field = make_column(field_json)
-    eq_(field.type.length, 255)
+    eq_(field.type.length, 256)
 
 
 def test_numeric_precision_scale():
@@ -100,4 +100,4 @@ def test_numeric_precision_scale_defaults():
     field_json = {'type': 'decimal', 'name': 'decimal'}
     field = make_column(field_json)
     eq_(field.type.precision, 20)
-    eq_(field.type.scale, 10)
+    eq_(field.type.scale, 5)
