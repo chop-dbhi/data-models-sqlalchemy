@@ -25,7 +25,7 @@ dmsa.add_model_modules()
 # Now the data model modules are built and available for import.
 from dmsa.omop.v5_0_0.models import Base
 
-for tbl in Base.metadata.sorted_tables():
+for tbl in Base.metadata.sorted_tables:
     print tbl.name
 ```
 
@@ -73,37 +73,37 @@ docker pull dbhi/data-models-sqlalchemy
 Usage for DDL generation:
 
 ```sh
-docker run --rm dbhi/data-models-sqlalchemy ddl -h
+docker run --rm dbhi/data-models-sqlalchemy dmsa ddl -h
 ```
 
 Generate OMOP V5 creation DDL for Oracle:
 
 ```sh
-docker run --rm dbhi/data-models-sqlalchemy ddl omop 5.0.0 oracle
+docker run --rm dbhi/data-models-sqlalchemy dmsa ddl omop 5.0.0 oracle
 ```
 
 Generate OMOP V5 drop DDL for Oracle:
 
 ```sh
-docker run --rm dbhi/data-models-sqlalchemy ddl -d omop 5.0.0 oracle
+docker run --rm dbhi/data-models-sqlalchemy dmsa ddl -d omop 5.0.0 oracle
 ```
 
 Generate OMOP V5 data deletion DML for Oracle:
 
 ```sh
-docker run --rm dbhi/data-models-sqlalchemy ddl -x omop 5.0.0 oracle
+docker run --rm dbhi/data-models-sqlalchemy dmsa ddl -x omop 5.0.0 oracle
 ```
 
 Usage for ERD generation:
 
 ```sh
-docker run --rm dbhi/data-models-sqlalchemy erd -h
+docker run --rm dbhi/data-models-sqlalchemy dmsa erd -h
 ```
 
 Generate i2b2 PEDSnet V2 ERD (the image will land at `./erd/i2b2_pedsnet_2.0.0_erd.png`):
 
 ```sh
-docker run --rm -v $(pwd)/erd:/erd dbhi/data-models-sqlalchemy erd i2b2_pedsnet 2.0.0 /erd/i2b2_pedsnet_2.0.0_erd.png
+docker run --rm -v $(pwd)/erd:/erd dbhi/data-models-sqlalchemy dmsa erd i2b2_pedsnet 2.0.0 /erd/i2b2_pedsnet_2.0.0_erd.png
 ```
 
 The `graphviz` graphing package supports a number of other output formats, listed here (link pending), which are interpreted from the passed extension.
@@ -172,7 +172,7 @@ dmsa erd i2b2_pedsnet 2.0.0 ./erd/i2b2_pedsnet_2.0.0_erd.png
 
 ## Web Service
 
-The web service uses a simple Flask debug server for now. It exposes the following endpoints:
+The web service uses a [Gunicorn](http://gunicorn.org/) server in the Docker container and the Flask debug server locally. It exposes the following endpoints:
 
 - Creation DDL at `/<model>/<version>/ddl/<dialect>/`
 - Creation DDL for only `table`, `constraint`, or `index` elements at `/<model>/<version>/ddl/<dialect>/<elements>`
@@ -186,7 +186,7 @@ The web service uses a simple Flask debug server for now. It exposes the followi
 Usage:
 
 ```sh
-docker run  dbhi/data-models-sqlalchemy start -h
+docker run dbhi/data-models-sqlalchemy gunicorn -h
 ```
 
 Run:
