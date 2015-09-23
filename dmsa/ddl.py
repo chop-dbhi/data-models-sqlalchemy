@@ -108,12 +108,33 @@ def main(argv=None):
 
     engine = create_engine(args['<dialect>'] + '://')
 
+    output = []
+
     INSERT = ("INSERT INTO version_history (operation, model, model_version, "
               "dms_version, dmsa_version) VALUES ('{operation}', '"
               + args['<model>'] + "', '" + args['<version>'] + "', '" +
               DMS_VERSION + "', '" + __version__ + "');\n\n")
 
-    output = []
+    version_history = Table(
+        'version_history', MetaData(),
+        Column('datetime', DateTime(), primary_key=True,
+               server_default=text('CURRENT_TIMESTAMP')),
+        Column('operation', String(24)),
+        Column('model', String(16)),
+        Column('model_version', String(16)),
+        Column('dms_version', String(16)),
+        Column('dmsa_version', String(16))
+    )
+
+    version_tbl_ddl = str(CreateTable(version_history).
+                          compile(dialect=engine.dialect)).strip()
+
+    if args['<dialect>'].startswith('mssql'):
+        version_tbl_ddl = ("IF OBJECT_ID ('version_history', 'U') IS NULL " +
+                           version_tbl_ddl)
+    else:
+        version_tbl_ddl = version_tbl_ddl.replace('CREATE TABLE',
+                                                  'CREATE TABLE IF NOT EXISTS')
 
     if args['--delete-data']:
 
@@ -122,6 +143,8 @@ def main(argv=None):
 
         tables = reversed(metadata.sorted_tables)
         output.extend(delete_data(tables, engine))
+
+        output.insert(0, version_tbl_ddl + ';\n\n')
 
         output = ''.join(output)
 
@@ -134,21 +157,6 @@ def main(argv=None):
     if not args['--xtables']:
 
         if not args['--drop']:
-
-            version_history = Table(
-                'version_history', MetaData(),
-                Column('datetime', DateTime(), primary_key=True,
-                       server_default=text('CURRENT_TIMESTAMP')),
-                Column('operation', String(24)),
-                Column('model', String(16)),
-                Column('model_version', String(16)),
-                Column('dms_version', String(16)),
-                Column('dmsa_version', String(16))
-            )
-
-            output.append(str(CreateTable(version_history).
-                              compile(dialect=engine.dialect)).strip())
-            output.append(';\n\n')
 
             output.append(INSERT.format(operation='create tables'))
             tables = metadata.sorted_tables
@@ -191,6 +199,8 @@ def main(argv=None):
             output.insert(0, '\n')
             output[0:0] = index_ddl(tables, engine, True)
             output.insert(0, INSERT.format(operation='drop indexes'))
+
+    output.insert(0, version_tbl_ddl + ';\n\n')
 
     output = ''.join(output)
 
