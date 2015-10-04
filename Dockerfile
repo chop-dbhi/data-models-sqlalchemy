@@ -33,7 +33,8 @@ RUN pip install -r /app/requirements.txt && pip install \
     cx-Oracle==5.1.3 \
     psycopg2==2.6 \
     MySQL-python==1.2.5 \
-    pyodbc==3.0.10
+    pyodbc==3.0.10 \
+    gunicorn==19.3.0
 
 # Copy app files.
 COPY . /app/
@@ -44,5 +45,4 @@ RUN pip install /app/
 # Set up run environment.
 EXPOSE 80
 WORKDIR /app
-ENTRYPOINT ["dmsa"]
-CMD ["start", "--host=0.0.0.0", "--port=80"]
+CMD ["gunicorn", "--bind=0.0.0.0:80", "--workers=4", "dmsa.service:app"]
