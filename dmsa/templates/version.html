@@ -4,18 +4,18 @@
     <title>Data Models DDL and ERDs</title>
 </head>
 <body>
-<a href="/"/>Data Models DDL and ERDs</a> > <a href="/{{ model.name }}"/>{{ model.pretty }}</a> > <a href="/{{ model.name }}/{{ version.name }}"/>{{ version.name }}</a>
+<a href="{{ url_for('index_route') }}"/>Data Models DDL and ERDs</a> > <a href="{{ url_for('model_route', model_name=model.name) }}"/>{{ model.pretty }}</a> > <a href="{{ url_for('version_route', model_name=model.name, version_name=version.name) }}"/>{{ version.name }}</a>
 <ul>
-    <li><a href="/{{ model.name }}/{{ version.name }}/erd/">ERD</a></li>
+    <li><a href="{{ url_for('create_erd_route', model=model.name, version=version.name) }}">ERD</a></li>
     <li>Creation DDL
         <ul>
         {% for dialect in dialects %}
             <li>{{ dialect.pretty }}
                 <ul>
-                    <li><a href="/{{ model.name }}/{{ version.name }}/ddl/{{ dialect.name }}"/>Full DDL</a></li>
-                    <li><a href="/{{ model.name }}/{{ version.name }}/ddl/{{ dialect.name }}/tables"/>Tables Only</a></li>
-                    <li><a href="/{{ model.name }}/{{ version.name }}/ddl/{{ dialect.name }}/constraints"/>Constraints Only</a></li>
-                    <li><a href="/{{ model.name }}/{{ version.name }}/ddl/{{ dialect.name }}/indexes"/>Indexes Only</a></li>
+                    <li><a href="{{ url_for('ddl_route', model=model.name, version=version.name, dialect=dialect.name) }}"/>Full DDL</a></li>
+                    <li><a href="{{ url_for('ddl_route', model=model.name, version=version.name, dialect=dialect.name, elements='tables') }}"/>Tables Only</a></li>
+                    <li><a href="{{ url_for('ddl_route', model=model.name, version=version.name, dialect=dialect.name, elements='constraints') }}"/>Constraints Only</a></li>
+                    <li><a href="{{ url_for('ddl_route', model=model.name, version=version.name, dialect=dialect.name, elements='indexes') }}"/>Indexes Only</a></li>
                 </ul>
             </li>
         {% endfor %}
@@ -26,10 +26,10 @@
         {% for dialect in dialects %}
             <li>{{ dialect.pretty }}
                 <ul>
-                    <li><a href="/{{ model.name }}/{{ version.name }}/drop/{{ dialect.name }}"/>Full Drop DDL</a></li>
-                    <li><a href="/{{ model.name }}/{{ version.name }}/drop/{{ dialect.name }}/tables"/>Drop Tables Only</a></li>
-                    <li><a href="/{{ model.name }}/{{ version.name }}/drop/{{ dialect.name }}/constraints"/>Drop Constraints Only</a></li>
-                    <li><a href="/{{ model.name }}/{{ version.name }}/drop/{{ dialect.name }}/indexes"/>Drop Indexes Only</a></li>
+                    <li><a href="{{ url_for('drop_route', model=model.name, version=version.name, dialect=dialect.name) }}"/>Full Drop DDL</a></li>
+                    <li><a href="{{ url_for('drop_route', model=model.name, version=version.name, dialect=dialect.name, elements='tables') }}"/>Drop Tables Only</a></li>
+                    <li><a href="{{ url_for('drop_route', model=model.name, version=version.name, dialect=dialect.name, elements='constraints') }}"/>Drop Constraints Only</a></li>
+                    <li><a href="{{ url_for('drop_route', model=model.name, version=version.name, dialect=dialect.name, elements='indexes') }}"/>Drop Indexes Only</a></li>
                 </ul>
             </li>
         {% endfor %}
@@ -38,7 +38,7 @@
     <li>Delete Data
         <ul>
         {% for dialect in dialects %}
-            <li><a href="/{{ model.name }}/{{ version.name }}/delete/{{ dialect.name }}"/>{{ dialect.pretty }}</a></li>
+            <li><a href="{{ url_for('delete_route', model=model.name, version=version.name, dialect=dialect.name) }}"/>{{ dialect.pretty }}</a></li>
         {% endfor %}
         </ul>
     </li>

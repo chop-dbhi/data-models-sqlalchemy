@@ -4,10 +4,10 @@
     <title>Data Models DDL and ERDs</title>
 </head>
 <body>
-<a href="/"/>Data Models DDL and ERDs</a>
+<a href="{{ url_for('index_route') }}"/>Data Models DDL and ERDs</a>
 <ul>
 {% for model in models %}
-    <li><a href="/{{ model.name }}"/>{{ model.pretty }}</a></li>
+    <li><a href="{{ url_for('model_route', model_name=model.name) }}"/>{{ model.pretty }}</a></li>
 {% endfor %}
 </ul>
 </body>
