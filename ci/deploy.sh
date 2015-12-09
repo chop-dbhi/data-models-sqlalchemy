@@ -70,6 +70,40 @@ if [ "${BRANCH}" = "master" ]; then
         --environment-name "${AWS_ENV_NAME}" \
         --version-label "${VERSION}"
 
+    echo "Checking for outdated branch deployments on Elastic Beanstalk."
+    AWS_BRANCH_ENV_NAMES=$(aws --region=us-east-1 elasticbeanstalk \
+        describe-environments --application-name "${APP_NAME}" | \
+        jq --raw-output '.Environments | .[].EnvironmentName')
+    GITHUB_BRANCH_NAMES=$(curl -u "username:${GITHUB_TOKEN}" -X GET \
+        "https://api.github.com/repos/chop-dbhi/${APP_NAME}/branches" \
+        2>/dev/null | jq --raw-output '.[].name')
+
+    for AWS_BRANCH_ENV_NAME in ${AWS_BRANCH_ENV_NAMES}; do
+        case "${AWS_BRANCH_ENV_NAME}" in
+            "${PROD_AWS_ENV_NAME}")
+                # Never remove prod environment.
+                ;;
+            "${DEV_AWS_ENV_NAME}")
+                # Never remove tip of dev environment.
+                ;;
+            *)
+                AWS_BRANCH="${AWS_BRANCH_ENV_NAME#$APP_NAME-}"
+                GITHUB_BRANCH_EXISTS=0
+                for GITHUB_BRANCH in ${GITHUB_BRANCH_NAMES}; do
+                    if [ "${AWS_BRANCH}" = "${GITHUB_BRANCH}" ]; then
+                        GITHUB_BRANCH_EXISTS=1
+                    fi
+                done
+                if [ ${GITHUB_BRANCH_EXISTS} -eq 0 ]; then
+                    echo "Removing outdated ${AWS_BRANCH} branch deployment on Elastic Beanstalk."
+                    aws --region=us-east-1 elasticbeanstalk \
+                        terminate-environment --environment-name \
+                        "${AWS_BRANCH_ENV_NAME}"
+                fi
+                ;;
+        esac
+    done
+
     # If final version...
     if [ ${#VERSION} -lt 6 ]; then
     
