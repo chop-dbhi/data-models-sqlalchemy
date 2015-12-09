@@ -29,7 +29,10 @@ RUN apt-get -qq update && \
 
 # Finally install Python dependencies.
 COPY requirements.txt /app/
-RUN pip install -r /app/requirements.txt && pip install \
+RUN pip install pygraphviz==1.3.1 \
+    --install-option="--include-path=/usr/include/graphviz" \
+    --install-option="--library-path=/usr/lib/graphviz/" && \
+    pip install -r /app/requirements.txt && pip install \
     cx-Oracle==5.1.3 \
     psycopg2==2.6 \
     MySQL-python==1.2.5 \
