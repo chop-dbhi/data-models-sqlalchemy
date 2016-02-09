@@ -9,12 +9,14 @@ machine:
     COMMIT_SHA1: "${CIRCLE_SHA1}"
     BRANCH: "${CIRCLE_BRANCH}"
     APP_NAME: "${CIRCLE_PROJECT_REPONAME}"
-    COVER_HTML_DIR: "${CIRCLE_ARTIFACTS}"
+    ARTIFACT_DIR: "${CIRCLE_ARTIFACTS}"
     TEST_OUTPUT_DIR: "${CIRCLE_TEST_REPORTS}"
+    URL_TEMPLATE: "http://127.0.0.1:8123/schemata/{model}/{version}?format=json"
+    DMSA_TEST_CONTAINER_URL: "http://127.0.0.1:5000/"
 
 checkout:
   post:
-    # Set git file mtimes to commit times so docker build recognizes cache. 
+    # Set git file mtimes to commit times so docker build recognizes cache.
     - ./ci/git-set-file-times.pl
 
 dependencies:
@@ -47,32 +49,35 @@ dependencies:
     # the cached layers of dmsa when building.
     - if [[ -e ~/docker/dmsa.tar ]]; then docker load --input
       ~/docker/dmsa.tar; fi
-    # Load data-models-service (dms) image if it exists in cache, or pull it.
+    # Load data-models-service (dms) image if it exists in cache and pull it.
     - if [[ -e ~/docker/dms.tar ]]; then docker load --input
-      ~/docker/dms.tar; else docker pull dbhi/data-models; fi
+      ~/docker/dms.tar; fi; docker pull dbhi/data-models
     # Build new dmsa image, using cached layers from last image.
     - docker build -t
       dbhi/data-models-sqlalchemy:$(./ci/version.sh | sed "s/+/-/g") .
     # Save new dmsa image to cache for next build.
     - mkdir -p ~/docker; docker save dbhi/data-models-sqlalchemy >
       ~/docker/dmsa.tar
-    # Save dms image if it doesn't exist.
-    - if [[ ! -e ~/docker/dms.tar ]]; then docker save
-      dbhi/data-models > ~/docker/dms.tar; fi
+    # Save dms image.
+    - docker save dbhi/data-models > ~/docker/dms.tar
 
 test:
   override:
     # Run the dms service locally.
     - docker run -d -p "8123:8123" dbhi/data-models; sleep 10
-    # Unit testing with coverage and xml output.
-    - mkdir -p "${TEST_OUTPUT_DIR}/nose"; nosetests --with-coverage
-      --cover-package=dmsa --cover-html --cover-html-dir="${COVER_HTML_DIR}"
-      --with-xunit --xunit-file="${TEST_OUTPUT_DIR}/nose/nosetests.xml"
     # Run the dmsa container locally.
     - docker run -d -p "5000:80"
       dbhi/data-models-sqlalchemy:$(./ci/version.sh | sed "s/+/-/g"); sleep 10
+    # Unit testing with coverage and xml output.
+    - mkdir -p "${TEST_OUTPUT_DIR}/nose"; nosetests --with-coverage
+      --cover-package=dmsa --cover-html --cover-html-dir="${ARTIFACT_DIR}"
+      --with-xunit --xunit-file="${TEST_OUTPUT_DIR}/nose/nosetests.xml"
     # Integration testing of the running container service.
     - nosetests dmsa.tests.container_integration
+    # Save DDL to artifact directory.
+    - mkdir -p "${ARTIFACT_DIR}/ddl"
+    - python dmsa/tests/output_all_ddl.py
+      "${ARTIFACT_DIR}/ddl/dmsa_$(./ci/version.sh)_all_ddl.sql"
   post:
     # Publish coverage report to Coveralls (requires COVERALLS_REPO_TOKEN).
     - coveralls
