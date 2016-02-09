@@ -48,4 +48,4 @@ RUN pip install /app/
 # Set up run environment.
 EXPOSE 80
 WORKDIR /app
-CMD ["gunicorn", "--bind=0.0.0.0:80", "--workers=4", "dmsa.service:app"]
+CMD ["gunicorn", "--bind=0.0.0.0:80", "--workers=4", "dmsa.service:build_app(\"http://data-models.origins.link/\")"]

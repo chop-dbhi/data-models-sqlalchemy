@@ -4,7 +4,7 @@
     <title>Data Models DDL and ERDs</title>
 </head>
 <body>
-<a href="{{ url_for('index_route') }}"/>Data Models DDL and ERDs</a> > <a href="{{ url_for('model_route', model_name=model.name) }}"/>{{ model.pretty }}</a> > <a href="{{ url_for('version_route', model_name=model.name, version_name=version.name) }}"/>{{ version.name }}</a>
+<a href="{{ url_for('index_route') }}"/>Data Models DDL and ERDs</a> > <a href="{{ url_for('model_route', model_name=model.name) }}"/>{{ model.pretty }}</a> > <a href="{{ url_for('version_route', model_name=model.name, version_name=version.name) }}"/>{{ version.name }}</a>{% if version.release_color %} <span style="color:{{ version.release_color }}">{{ version.release_level }}</span>{% endif %}
 <ul>
     <li><a href="{{ url_for('create_erd_route', model=model.name, version=version.name) }}">ERD</a></li>
     <li>Creation DDL
@@ -40,6 +40,16 @@
         {% for dialect in dialects %}
             <li><a href="{{ url_for('delete_route', model=model.name, version=version.name, dialect=dialect.name) }}"/>{{ dialect.pretty }}</a></li>
         {% endfor %}
+        </ul>
+    </li>
+    <li>Oracle Object Logging
+        <ul>
+            <li><a href="{{ url_for('logging_route', model=model.name, version=version.name) }}"/>Full Logging</a></li>
+            <li><a href="{{ url_for('logging_route', model=model.name, version=version.name, elements='tables') }}"/>Table Logging Only</a></li>
+            <li><a href="{{ url_for('logging_route', model=model.name, version=version.name, elements='indexes') }}"/>Index Logging Only</a></li>
+            <li><a href="{{ url_for('nologging_route', model=model.name, version=version.name) }}"/>Full Nologging</a></li>
+            <li><a href="{{ url_for('nologging_route', model=model.name, version=version.name, elements='tables') }}"/>Table Nologging Only</a></li>
+            <li><a href="{{ url_for('nologging_route', model=model.name, version=version.name, elements='indexes') }}"/>Index Nologging Only</a></li>
         </ul>
     </li>
 </ul>

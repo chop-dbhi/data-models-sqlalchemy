@@ -3,7 +3,7 @@
 # This script deploys a Dockerized python app image to Docker Hub, creates a
 # running ElasticBeanstalk deployment on AWS, and, if the version is final,
 # tags a release on GitHub and pushes the package to PyPi.
-# 
+#
 # If the commit is on master and the version is final, the script
 # deploys the app to the production AWS environment. If the commit is on
 # master with a non-final version, the dev AWS environment is used. If the
@@ -16,7 +16,7 @@
 #
 # The following environment variables must be set in order for the script to
 # succeed (use the environment variable project config on CircleCI):
-# 
+#
 # DOCKER_EMAIL, DOCKER_USER, and DOCKER_PASS to authenticate with Docker Hub.
 # APP_NAME to identify the app on Docker Hub and also AWS EB.
 # AWS_S3_BUCKET to identify the place where new AWS EB app version files
@@ -106,13 +106,13 @@ if [ "${BRANCH}" = "master" ]; then
 
     # If final version...
     if [ ${#VERSION} -lt 6 ]; then
-    
+
         echo "Creating GitHub release."
         git config --global user.email "aaron0browne@gmail.com"
         git config --global user.name "Aaron Browne"
         git tag -a "${VERSION}" -m "Release of version ${VERSION}"
         git push --tags
-    
+
         echo "Uploading package to PyPi."
         sed -e "s/<PYPI_USER>/${PYPI_USER}/" \
             -e "s/<PYPI_PASS>/${PYPI_PASS}/" \
@@ -120,13 +120,13 @@ if [ "${BRANCH}" = "master" ]; then
         python setup.py register
         python setup.py sdist bdist_wheel
         twine upload -u "${PYPI_USER}" -p "${PYPI_PASS}" dist/*
-    
+
         echo "Updating production deployment on Elastic Beanstalk."
         AWS_ENV_NAME="${PROD_AWS_ENV_NAME}"
         aws --region=us-east-1 elasticbeanstalk update-environment \
             --environment-name "${AWS_ENV_NAME}" \
             --version-label "${VERSION}"
-    
+
     fi
 
 # If not on master branch...

@@ -11,7 +11,7 @@ machine:
     APP_NAME: "${CIRCLE_PROJECT_REPONAME}"
     ARTIFACT_DIR: "${CIRCLE_ARTIFACTS}"
     TEST_OUTPUT_DIR: "${CIRCLE_TEST_REPORTS}"
-    URL_TEMPLATE: "http://127.0.0.1:8123/schemata/{model}/{version}?format=json"
+    DMSA_TEST_SERVICE: "http://127.0.0.1:8123/"
     DMSA_TEST_CONTAINER_URL: "http://127.0.0.1:5000/"
 
 checkout:
@@ -64,10 +64,12 @@ dependencies:
 test:
   override:
     # Run the dms service locally.
-    - docker run -d -p "8123:8123" dbhi/data-models; sleep 10
+    - docker run -d -p "8123:8123" --name dms dbhi/data-models; sleep 10
     # Run the dmsa container locally.
-    - docker run -d -p "5000:80"
-      dbhi/data-models-sqlalchemy:$(./ci/version.sh | sed "s/+/-/g"); sleep 10
+    - docker run -d -p "5000:80" --link dms:dms
+      dbhi/data-models-sqlalchemy:$(./ci/version.sh | sed "s/+/-/g") gunicorn
+      --bind="0.0.0.0:80" --workers=4
+      'dmsa.service:build_app("http://dms:8123/")'; sleep 10
     # Unit testing with coverage and xml output.
     - mkdir -p "${TEST_OUTPUT_DIR}/nose"; nosetests --with-coverage
       --cover-package=dmsa --cover-html --cover-html-dir="${ARTIFACT_DIR}"

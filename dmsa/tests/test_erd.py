@@ -1,4 +1,4 @@
-import os.path
+import os
 from nose.tools import ok_
 from dmsa import erd
 
@@ -9,7 +9,9 @@ from dmsa import erd
 # output ERD, merely that the functions run without error and produce a file at
 # the output location.
 
+SERVICE = os.environ.get('DMSA_TEST_SERVICE',
+                         'http://data-models.origins.link/')
 
 def test_all():
-    erd.main(['omop', '5.0.0', 'test_erd_out.png'])
+    erd.write('omop', '5.0.0', 'test_erd_out.png', SERVICE)
     ok_(os.path.exists('test_erd_out.png'))

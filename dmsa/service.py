@@ -1,88 +1,26 @@
 import os
 import sys
-from functools import wraps
 from flask import (Flask, Response, request, send_file, render_template,
-                   redirect, url_for, make_response)
+                   redirect, url_for)
 from dmsa import ddl, erd, __version__
-from dmsa.settings import MODELS, DIALECTS, DMS_VERSION
-
-
-class ReverseProxied(object):
-    '''Wrap the application in this middleware and configure the
-    front-end server to add these headers, to let you quietly bind
-    this to a URL other than / and to an HTTP scheme that is
-    different than what is used locally.
-
-    In nginx:
-    location /myprefix {
-        proxy_pass http://192.168.0.1:5001;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Scheme $scheme;
-        proxy_set_header X-Script-Name /myprefix;
-        }
-
-    :param app: the WSGI application
-    '''
-    def __init__(self, app):
-        self.app = app
-
-    def __call__(self, environ, start_response):
-        script_name = environ.get('HTTP_X_SCRIPT_NAME', '')
-        if script_name:
-            environ['SCRIPT_NAME'] = script_name
-            path_info = environ['PATH_INFO']
-            if path_info.startswith(script_name):
-                environ['PATH_INFO'] = path_info[len(script_name):]
-
-        scheme = environ.get('HTTP_X_SCHEME', '')
-        if scheme:
-            environ['wsgi.url_scheme'] = scheme
-
-        server = environ.get('HTTP_X_FORWARDED_SERVER', '')
-        if server:
-            environ['HTTP_HOST'] = server
-
-        return self.app(environ, start_response)
+from dmsa.utility import (PRETTY_MODELS, PRETTY_DIALECTS, get_model_json,
+                          get_service_version, get_template_models,
+                          get_template_dialects, ReverseProxied, dmsa_version)
 
 app = Flask('dmsa')
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
-
-def add_response_headers(headers={}):
-    """This decorator adds the headers passed in to the response"""
-    def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            resp = make_response(f(*args, **kwargs))
-            h = resp.headers
-            for header, value in headers.items():
-                h[header] = value
-            return resp
-        return decorated_function
-    return decorator
-
-
-def dmsa_version(f):
-    """This decorator passes User-Agent: DMSA/<version>
-    (+https://github.com/chop-dbhi/data-models-sqlalchemy)"""
-    return add_response_headers(
-        {'User-Agent':
-         'DMSA/{0} (+https://github.com/chop-dbhi/data-models-sqlalchemy)'.
-         format(__version__)})(f)
-
-
 @app.route('/')
 @dmsa_version
 def index_route():
-    return render_template('index.html', models=MODELS)
+    return render_template('index.html', models=app.config['models'])
 
 
 @app.route('/<model_name>/')
 @dmsa_version
 def model_route(model_name):
 
-    for model in MODELS:
+    for model in app.config['models']:
         if model['name'] == model_name:
             break
 
@@ -93,7 +31,7 @@ def model_route(model_name):
 @dmsa_version
 def version_route(model_name, version_name):
 
-    for model in MODELS:
+    for model in app.config['models']:
         if model['name'] == model_name:
             break
 
@@ -102,7 +40,7 @@ def version_route(model_name, version_name):
             break
 
     return render_template('version.html', model=model, version=version,
-                           dialects=DIALECTS)
+                           dialects=app.config['dialects'])
 
 
 @app.route('/<model>/<version>/ddl/<dialect>/', defaults={'elements': 'all'})
@@ -110,19 +48,20 @@ def version_route(model_name, version_name):
 @dmsa_version
 def ddl_route(model, version, dialect, elements):
 
-    args = []
+    tables, constraints, indexes = False, False, False
 
-    if elements == 'tables':
-        args.extend(['-c', '-i'])
+    if elements in ['tables', 'all']:
+        tables = True
 
-    if elements == 'constraints':
-        args.extend(['-t', '-i'])
+    if elements in ['constraints', 'all']:
+        constraints = True
 
-    if elements == 'indexes':
-        args.extend(['-t', '-c'])
+    if elements in ['indexes', 'all']:
+        indexes = True
 
-    args.extend(['-r', model, version, dialect])
-    ddl_str = ddl.main(args)
+    ddl_str = ddl.generate(model, version, dialect, tables=tables,
+                           constraints=constraints, indexes=indexes,
+                           service=app.config['service'])
 
     resp = Response(ddl_str, status='200 OK', mimetype='text/plain')
 
@@ -134,19 +73,20 @@ def ddl_route(model, version, dialect, elements):
 @dmsa_version
 def drop_route(model, version, dialect, elements):
 
-    args = []
+    tables, constraints, indexes = False, False, False
 
-    if elements == 'tables':
-        args.extend(['-c', '-i'])
+    if elements in ['tables', 'all']:
+        tables = True
 
-    if elements == 'constraints':
-        args.extend(['-t', '-i'])
+    if elements in ['constraints', 'all']:
+        constraints = True
 
-    if elements == 'indexes':
-        args.extend(['-t', '-c'])
+    if elements in ['indexes', 'all']:
+        indexes = True
 
-    args.extend(['-r', '-d', model, version, dialect])
-    ddl_str = ddl.main(args)
+    ddl_str = ddl.generate(model, version, dialect, tables=tables,
+                           constraints=constraints, indexes=indexes,
+                           drop=True, service=app.config['service'])
 
     resp = Response(ddl_str, status='200 OK', mimetype='text/plain')
 
@@ -157,8 +97,8 @@ def drop_route(model, version, dialect, elements):
 @dmsa_version
 def delete_route(model, version, dialect):
 
-    args = ['-r', '-x', model, version, dialect]
-    ddl_str = ddl.main(args)
+    ddl_str = ddl.generate(model, version, dialect, delete_data=True,
+                           service=app.config['service'])
 
     resp = Response(ddl_str, status='200 OK', mimetype='text/plain')
 
@@ -172,7 +112,7 @@ def create_erd_route(model, version):
     ext = request.args.get('format') or 'png'
 
     filename = '{0}_{1}_dms_{2}_dmsa_{3}.{4}'.format(
-        model, version, DMS_VERSION, __version__, ext)
+        model, version, app.config['service_version'], __version__, ext)
     filepath = '/'.join([app.instance_path, filename])
 
     try:
@@ -180,7 +120,7 @@ def create_erd_route(model, version):
     except OSError:
         pass
 
-    erd.main([model, version, filepath])
+    erd.write(model, version, filepath, app.config['service'])
 
     return redirect(url_for('erd_route', model=model, version=version,
                             filename=filename))
@@ -195,32 +135,69 @@ def erd_route(model, version, filename):
     return send_file(filepath)
 
 
-def main(argv=None):
-    usage = """Data Model DDL and ERD Web Service
+@app.route('/<model>/<version>/logging/oracle/', defaults={'elements': 'all'})
+@app.route('/<model>/<version>/logging/oracle/<elements>/')
+@dmsa_version
+def logging_route(model, version, elements):
 
-    Exposes generated DDL and ERD at HTTP endpoints.
+    tables, constraints, indexes = False, False, False
 
-    Usage: service.py [options]
+    if elements in ['tables', 'all']:
+        tables = True
 
-    Options:
+    if elements in ['constraints', 'all']:
+        constraints = True
 
-        -h --help       Show this screen.
-        --host=HOST     The hostname to listen on [default: 127.0.0.1].
-        --port=PORT     The port of the webserver [default: 5000].
-        --debug         Enable debug mode.
+    if elements in ['indexes', 'all']:
+        indexes = True
 
+    ddl_str = ddl.generate(model, version, 'oracle', tables=tables,
+                           constraints=constraints, indexes=indexes,
+                           logging=True, service=app.config['service'])
+
+    resp = Response(ddl_str, status='200 OK', mimetype='text/plain')
+
+    return resp
+
+
+@app.route('/<model>/<version>/nologging/oracle/', defaults={'elements': 'all'})
+@app.route('/<model>/<version>/nologging/oracle/<elements>/')
+@dmsa_version
+def nologging_route(model, version, elements):
+
+    tables, constraints, indexes = False, False, False
+
+    if elements in ['tables', 'all']:
+        tables = True
+
+    if elements in ['constraints', 'all']:
+        constraints = True
+
+    if elements in ['indexes', 'all']:
+        indexes = True
+
+    ddl_str = ddl.generate(model, version, 'oracle', tables=tables,
+                           constraints=constraints, indexes=indexes,
+                           nologging=True, service=app.config['service'])
+
+    resp = Response(ddl_str, status='200 OK', mimetype='text/plain')
+
+    return resp
+
+
+def build_app(service):
+    """Builds and returns a web app that exposes DDL and ERD.
+
+    Arguments:
+      service  Base URL of the data models service to use.
     """  # noqa
 
-    from docopt import docopt
+    app.config['service'] = service
+    app.config['service_version'] = get_service_version(service)
+    app.config['models'] = get_template_models(service)
+    app.config['dialects'] = get_template_dialects()
 
-    # Ignore command name if called from command line.
-    if argv is None:
-        argv = sys.argv[1:]
-
-    args = docopt(usage, argv=argv, version=__version__)
-
-    app.run(host=args['--host'], port=int(args['--port']),
-            debug=args['--debug'])
+    return app
 
 
 if __name__ == '__main__':

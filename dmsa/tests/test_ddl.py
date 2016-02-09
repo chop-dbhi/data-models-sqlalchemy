@@ -1,3 +1,4 @@
+import os
 from nose.tools import ok_
 from dmsa import ddl
 
@@ -8,53 +9,84 @@ from dmsa import ddl
 # output DDL, merely that the functions run without error and produce non-null
 # output strings.
 
+SERVICE = os.environ.get('DMSA_TEST_SERVICE',
+                         'http://data-models.origins.link/')
 
 def test_all():
-    ddl_output = ddl.main(['--return', 'omop', '5.0.0', 'sqlite'])
+    ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', service=SERVICE)
     ok_(ddl_output)
 
 
 def test_drop_all():
-    ddl_output = ddl.main(['--return', '--drop', 'omop', '5.0.0', 'sqlite'])
+    ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', drop=True,
+                              service=SERVICE)
     ok_(ddl_output)
 
 
 def test_notables():
-    ddl_output = ddl.main(['--return', '--xtables', 'omop', '5.0.0', 'sqlite'])
+    ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', tables=False,
+                              service=SERVICE)
     ok_(ddl_output)
 
 
 def test_drop_notables():
-    ddl_output = ddl.main(['--return', '--xtables', '--drop', 'omop', '5.0.0',
-                           'sqlite'])
+    ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', tables=False,
+                              drop=True, service=SERVICE)
     ok_(ddl_output)
 
 
 def test_noconstraints():
-    ddl_output = ddl.main(['--return', '--xconstraints', 'omop', '5.0.0',
-                           'sqlite'])
+    ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', constraints=False,
+                              service=SERVICE)
     ok_(ddl_output)
 
 
 def test_drop_noconstraints():
-    ddl_output = ddl.main(['--return', '--xconstraints', '--drop', 'omop',
-                           '5.0.0', 'sqlite'])
+    ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', constraints=False,
+                              drop=True, service=SERVICE)
     ok_(ddl_output)
 
 
 def test_noindexes():
-    ddl_output = ddl.main(['--return', '--xindexes', 'omop', '5.0.0',
-                           'sqlite'])
+    ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', indexes=False,
+                              service=SERVICE)
     ok_(ddl_output)
 
 
 def test_drop_noindexes():
-    ddl_output = ddl.main(['--return', '--xindexes', '--drop', 'omop', '5.0.0',
-                           'sqlite'])
+    ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', indexes=False,
+                              drop=True, service=SERVICE)
     ok_(ddl_output)
 
 
 def test_delete():
-    ddl_output = ddl.main(['--return', '--delete-data', 'omop', '5.0.0',
-                           'sqlite'])
+    ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', delete_data=True)
+    ok_(ddl_output)
+
+def test_logging_all():
+    ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', logging=True)
+    ok_(ddl_output)
+
+def test_nologging_all():
+    ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', nologging=True)
+    ok_(ddl_output)
+
+def test_logging_notables():
+    ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', logging=True,
+                              tables=False)
+    ok_(ddl_output)
+
+def test_nologging_notables():
+    ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', nologging=True,
+                              tables=False)
+    ok_(ddl_output)
+
+def test_logging_noindexes():
+    ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', logging=True,
+                              indexes=False)
+    ok_(ddl_output)
+
+def test_nologging_noindexes():
+    ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', nologging=True,
+                              indexes=False)
     ok_(ddl_output)
