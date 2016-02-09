@@ -48,12 +48,19 @@ VERSION="$(${DIRNAME}/version.sh)"
 
 echo "Pushing image to Docker Hub registry."
 docker login -e "${DOCKER_EMAIL}" -u "${DOCKER_USER}" -p "${DOCKER_PASS}"
-docker push "dbhi/${APP_NAME}:${VERSION//+/-}"
+docker push "dbhi/${APP_NAME}:${BRANCH_TAG}"
 
 echo "Creating new Elastic Beanstalk version."
-DOCKERRUN_FILE="${VERSION-Dockerrun.aws.json}"
-sed "s/<TAG>/${VERSION//+/-}/" < "${DIRNAME}/Dockerrun.aws.json.template" > \
-    "${DOCKERRUN_FILE}"
+if [ ${#VERSION} -lt 6 ]; then
+    docker push "dbhi/${APP_NAME}:${VERSION}"
+    DOCKERRUN_FILE="${VERSION}-Dockerrun.aws.json"
+    sed "s/<TAG>/${VERSION}/" < "${DIRNAME}/Dockerrun.aws.json.template" > \
+        "${DOCKERRUN_FILE}"
+else
+    DOCKERRUN_FILE="${BRANCH_TAG}-Dockerrun.aws.json"
+    sed "s/<TAG>/${BRANCH_TAG}/" < "${DIRNAME}/Dockerrun.aws.json.template" > \
+        "${DOCKERRUN_FILE}"
+fi
 aws --region=us-east-1 s3 cp "${DOCKERRUN_FILE}" \
     "s3://${AWS_S3_BUCKET}/${DOCKERRUN_FILE}"
 aws --region=us-east-1 elasticbeanstalk create-application-version \
