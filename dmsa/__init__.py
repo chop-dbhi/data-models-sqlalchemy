@@ -1,4 +1,5 @@
 import os
+from dmsa.makers import make_model_from_service
 
 serial = os.environ.get('BUILD_NUM') or '0'
 sha = os.environ.get('COMMIT_SHA1') or '0'

@@ -191,3 +191,8 @@ def make_model(data_model, metadata):
         metadata.tables[table_name].append_constraint(make_index(index))
 
     return metadata
+
+
+def make_model_from_service(model, model_version, service, metadata):
+    from dmsa.utility import get_model_json
+    return make_model(get_model_json(model, model_version, service), metadata)
