@@ -14,7 +14,9 @@
                 <ul>
                     <li><a href="{{ url_for('ddl_route', model=model.name, version=version.name, dialect=dialect.name) }}"/>Full DDL</a></li>
                     <li><a href="{{ url_for('ddl_route', model=model.name, version=version.name, dialect=dialect.name, elements='tables') }}"/>Tables Only</a></li>
+                    {% if dialect.name != 'sqlite' %}
                     <li><a href="{{ url_for('ddl_route', model=model.name, version=version.name, dialect=dialect.name, elements='constraints') }}"/>Constraints Only</a></li>
+                    {% endif %}
                     <li><a href="{{ url_for('ddl_route', model=model.name, version=version.name, dialect=dialect.name, elements='indexes') }}"/>Indexes Only</a></li>
                 </ul>
             </li>
@@ -28,7 +30,9 @@
                 <ul>
                     <li><a href="{{ url_for('drop_route', model=model.name, version=version.name, dialect=dialect.name) }}"/>Full Drop DDL</a></li>
                     <li><a href="{{ url_for('drop_route', model=model.name, version=version.name, dialect=dialect.name, elements='tables') }}"/>Drop Tables Only</a></li>
+                    {% if dialect.name != 'sqlite' %}
                     <li><a href="{{ url_for('drop_route', model=model.name, version=version.name, dialect=dialect.name, elements='constraints') }}"/>Drop Constraints Only</a></li>
+                    {% endif %}
                     <li><a href="{{ url_for('drop_route', model=model.name, version=version.name, dialect=dialect.name, elements='indexes') }}"/>Drop Indexes Only</a></li>
                 </ul>
             </li>

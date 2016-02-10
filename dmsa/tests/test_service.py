@@ -28,7 +28,7 @@ for m in get_template_models(SERVICE):
         ENDPOINTS.append('/%s/%s/delete/sqlite/' %
                          (m['name'], v['name']))
 
-        for e in ['tables', 'constraints', 'indexes']:
+        for e in ['tables', 'indexes']:
 
             ENDPOINTS.append('/%s/%s/ddl/sqlite/%s/' %
                              (m['name'], v['name'], e))

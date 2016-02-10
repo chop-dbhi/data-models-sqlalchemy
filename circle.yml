@@ -57,7 +57,7 @@ dependencies:
     - docker build -t "dbhi/data-models-sqlalchemy:${BRANCH_TAG}" .
     # Tag dmsa image with version number if final version.
     - VERSION=$(./ci/version.sh); if [ ${#VERSION} -lt 6 ]; then
-      docker tag "dbhi/data-models-sqlalchemy:${BRANCH_TAG}"
+      docker tag -f "dbhi/data-models-sqlalchemy:${BRANCH_TAG}"
       "dbhi/data-models-sqlalchemy:${VERSION}"; fi
     # Save new dmsa image to cache for next build.
     - mkdir -p ~/docker; docker save dbhi/data-models-sqlalchemy >

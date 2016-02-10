@@ -159,14 +159,14 @@ def generate(model, model_version, dialect, tables=True, constraints=True,
             output.extend(table_ddl(tables, engine, True))
             output.insert(0, INSERT.format(operation='drop tables'))
 
-        elif logging:
+        elif logging and dialect.startswith('oracle'):
 
             output.append(INSERT.format(operation='table logging'))
             for table in metadata.sorted_tables:
                 output.append(LOGGING.format(type='TABLE', name=table.name))
             output.append('\n')
 
-        elif nologging:
+        elif nologging and dialect.startswith('oracle'):
 
             output.append(INSERT.format(operation='table nologging'))
             for table in metadata.sorted_tables:
@@ -181,7 +181,7 @@ def generate(model, model_version, dialect, tables=True, constraints=True,
 
     if constraints:
 
-        if drop:
+        if drop and not dialect.startswith('sqlite'):
 
             tables = reversed(metadata.sorted_tables)
             output.insert(0, '\n')
@@ -193,7 +193,7 @@ def generate(model, model_version, dialect, tables=True, constraints=True,
         elif nologging:
             pass
 
-        else:
+        elif not dialect.startswith('sqlite'):
 
             output.append('\n')
             output.append(INSERT.format(operation='create constraints'))
@@ -209,14 +209,14 @@ def generate(model, model_version, dialect, tables=True, constraints=True,
             output[0:0] = index_ddl(tables, engine, True)
             output.insert(0, INSERT.format(operation='drop indexes'))
 
-        elif logging:
+        elif logging and dialect.startswith('oracle'):
 
             output.append(INSERT.format(operation='index logging'))
             for table in metadata.sorted_tables:
                 output.append(LOGGING.format(type='INDEX', name=table.name))
             output.append('\n')
 
-        elif nologging:
+        elif nologging and dialect.startswith('oracle'):
 
             output.append(INSERT.format(operation='index nologging'))
             for table in metadata.sorted_tables:

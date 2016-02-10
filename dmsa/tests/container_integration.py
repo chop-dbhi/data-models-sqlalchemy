@@ -48,10 +48,11 @@ for m in get_template_models(os.environ.get('DMSA_TEST_SERVICE') or \
 
             for e in ['tables', 'constraints', 'indexes']:
 
-                ENDPOINTS.append('%s/%s/ddl/%s/%s/' %
-                                 (m['name'], v['name'], d['name'], e))
-                ENDPOINTS.append('%s/%s/drop/%s/%s/' %
-                                 (m['name'], v['name'], d['name'], e))
+                if not (d['name'] == 'sqlite' and e == 'constraints'):
+                    ENDPOINTS.append('%s/%s/ddl/%s/%s/' %
+                                     (m['name'], v['name'], d['name'], e))
+                    ENDPOINTS.append('%s/%s/drop/%s/%s/' %
+                                     (m['name'], v['name'], d['name'], e))
 
                 if e != 'constraints' and d['name'] == 'oracle':
                     ENDPOINTS.append('%s/%s/logging/oracle/%s/' %
