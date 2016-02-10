@@ -271,8 +271,9 @@ def constraint_ddl(tables, engine, drop=False):
     output = []
 
     for table in tables:
-        for constraint in sorted(list(table.constraints),
-                                 key=lambda k: k.name):
+        constraints = sorted(list(table.constraints), key=lambda k: k.name,
+                             reverse=drop)
+        for constraint in constraints:
 
             # Avoid duplicating primary key constraint definitions (they are
             # included in CREATE TABLE statements).
@@ -294,7 +295,9 @@ def index_ddl(tables, engine, drop=False):
     output = []
 
     for table in tables:
-        for index in sorted(list(table.indexes), key=lambda k: k.name):
+        indexes = sorted(list(table.indexes), key=lambda k: k.name,
+                         reverse=drop)
+        for index in indexes:
 
             if not drop:
                 ddl = CreateIndex(index)
