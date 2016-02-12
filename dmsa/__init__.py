@@ -8,8 +8,8 @@ sha = sha[0:8]
 __version_info__ = {
     'major': 0,
     'minor': 5,
-    'micro': 8,
-    'releaselevel': 'final',
+    'micro': 9,
+    'releaselevel': 'alpha',
     'serial': serial,
     'sha': sha
 }
