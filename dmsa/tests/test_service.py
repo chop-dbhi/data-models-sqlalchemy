@@ -1,13 +1,18 @@
+import os
 from nose.tools import eq_
 from dmsa import service
-from dmsa.settings import MODELS
+from dmsa.utility import get_template_models
 
-service.app.config['TESTING'] = True
-app = service.app.test_client()
+SERVICE = os.environ.get('DMSA_TEST_SERVICE',
+                         'http://data-models.origins.link/')
+
+app = service.build_app(SERVICE)
+app.config['TESTING'] = True
+test_app = app.test_client()
 
 ENDPOINTS = ['/']
 
-for m in MODELS:
+for m in get_template_models(SERVICE):
 
     ENDPOINTS.append('/%s/' % m['name'])
 
@@ -23,13 +28,12 @@ for m in MODELS:
         ENDPOINTS.append('/%s/%s/delete/sqlite/' %
                          (m['name'], v['name']))
 
-        for e in ['tables', 'constraints', 'indexes']:
+        for e in ['tables', 'indexes']:
 
             ENDPOINTS.append('/%s/%s/ddl/sqlite/%s/' %
                              (m['name'], v['name'], e))
             ENDPOINTS.append('/%s/%s/drop/sqlite/%s/' %
                              (m['name'], v['name'], e))
-
 
 def test_endpoints():
     for endpoint in ENDPOINTS:
@@ -37,14 +41,12 @@ def test_endpoints():
 
 
 def check_endpoint(endpoint):
-    r = app.get(endpoint)
+    r = test_app.get(endpoint)
     if endpoint.endswith('/erd/'):
         eq_(r.status_code, 302)
         # Set endpoint to redirect location stripped of hostname and retest.
-        print r.location
         endpoint = r.location[r.location.find('/', 8):]
-        r = app.get(endpoint)
-        print endpoint, r.status_code, dir(r)
+        r = test_app.get(endpoint)
         eq_(r.status_code, 200)
     else:
         eq_(r.status_code, 200)

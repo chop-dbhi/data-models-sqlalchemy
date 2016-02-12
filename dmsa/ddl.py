@@ -1,5 +1,3 @@
-import sys
-import requests
 from datetime import datetime
 from sqlalchemy import (create_engine, MetaData, Table, Column,
                         Integer, Numeric, String, DateTime, text)
@@ -9,7 +7,7 @@ from sqlalchemy.schema import (CreateTable, AddConstraint, CreateIndex,
                                ForeignKeyConstraint, CheckConstraint,
                                UniqueConstraint, PrimaryKeyConstraint)
 from dmsa import __version__
-from dmsa.settings import get_url, DMS_VERSION
+from dmsa.utility import get_model_json, get_service_version
 from dmsa.makers import make_model
 
 
@@ -69,51 +67,43 @@ def _compile_constraint_postgresql(constraint, compiler, **kw):
     return getattr(compiler, visit_attr)(constraint, **kw)
 
 
-def main(argv=None):
-    usage = """Data Model DDL Generator
+def generate(model, model_version, dialect, tables=True, constraints=True,
+             indexes=True, drop=False, delete_data=False, nologging=False,
+             logging=False, service='http://data-models.origins.link/'):
+    """Generate data definition language for the data model specified in the
+    given DBMS dialect.
 
-    Generates data definition language for the data model specified in the
-    given DBMS dialect. If passing a custom URL, the data model returned must
-    be in the JSON format defined by the chop-dbhi/data-models package. See
-    http://docs.sqlalchemy.org/en/rel_1_0/dialects/index.html for available
-    dialects. The generated DDL is written to stdout.
-
-    Usage: ddl.py [options] <model> <version> <dialect>
-
-    Options:
-        -h --help            Show this screen.
-        -t --xtables         Exclude tables from the generated DDL.
-        -c --xconstraints    Exclude constraints from the generated DDL.
-        -i --xindexes        Exclude indexes from the generated DDL.
-        -d --drop            Generate DDL to drop, instead of create, objects.
-        -x --delete-data     Generate DML to delete data.
-        -u URL --url=URL     Retrieve model JSON from this URL instead of the
-                             default or environment-variable-passed URL.
-        -r --return          Return DDL as python string object instead of
-                             printing it to stdout.
-
+    Arguments:
+      model          Model to generate DDL for.
+      model_version  Model version to generate DDL for.
+      dialect        DBMS dialect to generate DDL in.
+      tables         Include tables when generating DDL.
+      constraints    Include constraints when generating DDL.
+      indexes        Include indexes when generating DDL.
+      drop           Generate DDL to drop, instead of create, objects.
+      delete_data    Generate DML to delete data from the model.
+      nologging      Generate Oracle DDL to make objects "nologging".
+      logging        Generate Oracle DDL to make objects "logging".
+      service        Base URL of the data models service to use.
     """  # noqa
 
-    from docopt import docopt
-
-    # Ignore command name if called from command line.
-    argv = argv or sys.argv[1:]
-
-    args = docopt(usage, argv=argv, version=__version__)
-    url = args['--url'] or get_url(args['<model>'], args['<version>'])
-    model_json = requests.get(url).json()
-
     metadata = MetaData()
+    model_json = get_model_json(model, model_version, service)
     make_model(model_json, metadata)
 
-    engine = create_engine(args['<dialect>'] + '://')
+    service_version = get_service_version(service)
+
+    engine = create_engine(dialect + '://')
 
     output = []
 
     INSERT = ("INSERT INTO version_history (operation, model, model_version, "
               "dms_version, dmsa_version) VALUES ('{operation}', '"
-              + args['<model>'] + "', '" + args['<version>'] + "', '" +
-              DMS_VERSION + "', '" + __version__ + "');\n\n")
+              + model + "', '" + model_version + "', '" +
+              service_version + "', '" + __version__ + "');\n\n")
+
+    if dialect.startswith('oracle'):
+        INSERT = INSERT + "COMMIT;\n\n"
 
     version_history = Table(
         'version_history', MetaData(),
@@ -129,88 +119,125 @@ def main(argv=None):
     version_tbl_ddl = str(CreateTable(version_history).
                           compile(dialect=engine.dialect)).strip()
 
-    if args['<dialect>'].startswith('mssql'):
+    if dialect.startswith('mssql'):
         version_tbl_ddl = ("IF OBJECT_ID ('version_history', 'U') IS NULL " +
-                           version_tbl_ddl)
+                           version_tbl_ddl + ";")
+    elif dialect.startswith('oracle'):
+        version_tbl_ddl = ("BEGIN\n" +
+                           "EXECUTE IMMEDIATE '" + version_tbl_ddl + "';\n" +
+                           "EXCEPTION\n" +
+                           "WHEN OTHERS THEN\n" +
+                           "IF SQLCODE = -955 THEN NULL;\n" +
+                           "ELSE RAISE;\n" +
+                           "END IF;\nEND;\n/")
     else:
         version_tbl_ddl = version_tbl_ddl.replace('CREATE TABLE',
                                                   'CREATE TABLE IF NOT EXISTS')
+        version_tbl_ddl = version_tbl_ddl + ";"
 
-    if args['--delete-data']:
+    if delete_data:
 
-        output.append(INSERT.format(operation='delete data',
-                                    datetime=str(datetime.now())))
+        output.append(INSERT.format(operation='delete data'))
 
         tables = reversed(metadata.sorted_tables)
-        output.extend(delete_data(tables, engine))
+        output.extend(delete_ddl(tables, engine))
 
-        output.insert(0, version_tbl_ddl + ';\n\n')
+        output.insert(0, version_tbl_ddl + '\n\n')
 
         output = ''.join(output)
 
-        if args['--return']:
-            return output
-        else:
-            sys.stdout.write(output)
-            return
+        return output
 
-    if not args['--xtables']:
+    LOGGING = 'ALTER {type} {name} LOGGING;\n'
+    NOLOGGING = 'ALTER {type} {name} NOLOGGING;\n'
 
-        if not args['--drop']:
+    if tables:
 
-            output.append(INSERT.format(operation='create tables'))
-            tables = metadata.sorted_tables
-            output.extend(table_ddl(tables, engine, False))
-
-        else:
+        if drop:
 
             tables = reversed(metadata.sorted_tables)
             output.extend(table_ddl(tables, engine, True))
             output.insert(0, INSERT.format(operation='drop tables'))
 
-    if not args['--xconstraints']:
+        elif logging and dialect.startswith('oracle'):
 
-        if not args['--drop']:
-
+            output.append(INSERT.format(operation='table logging'))
+            for table in metadata.sorted_tables:
+                output.append(LOGGING.format(type='TABLE', name=table.name))
             output.append('\n')
-            output.append(INSERT.format(operation='create constraints'))
-            tables = metadata.sorted_tables
-            output.extend(constraint_ddl(tables, engine, False))
+
+        elif nologging and dialect.startswith('oracle'):
+
+            output.append(INSERT.format(operation='table nologging'))
+            for table in metadata.sorted_tables:
+                output.append(NOLOGGING.format(type='TABLE', name=table.name))
+            output.append('\n')
 
         else:
+
+            output.append(INSERT.format(operation='create tables'))
+            tables = metadata.sorted_tables
+            output.extend(table_ddl(tables, engine, False))
+
+    if constraints:
+
+        if drop and not dialect.startswith('sqlite'):
 
             tables = reversed(metadata.sorted_tables)
             output.insert(0, '\n')
             output[0:0] = constraint_ddl(tables, engine, True)
             output.insert(0, INSERT.format(operation='drop constraints'))
 
-    if not args['--xindexes']:
+        elif logging:
+            pass
+        elif nologging:
+            pass
 
-        if not args['--drop']:
+        elif not dialect.startswith('sqlite'):
 
             output.append('\n')
-            output.append(INSERT.format(operation='create indexes'))
+            output.append(INSERT.format(operation='create constraints'))
             tables = metadata.sorted_tables
-            output.extend(index_ddl(tables, engine, False))
+            output.extend(constraint_ddl(tables, engine, False))
 
-        else:
+    if indexes:
+
+        if drop:
 
             tables = reversed(metadata.sorted_tables)
             output.insert(0, '\n')
             output[0:0] = index_ddl(tables, engine, True)
             output.insert(0, INSERT.format(operation='drop indexes'))
 
-    output.insert(0, version_tbl_ddl + ';\n\n')
+        elif logging and dialect.startswith('oracle'):
+
+            output.append(INSERT.format(operation='index logging'))
+            for table in metadata.sorted_tables:
+                output.append(LOGGING.format(type='INDEX', name=table.name))
+            output.append('\n')
+
+        elif nologging and dialect.startswith('oracle'):
+
+            output.append(INSERT.format(operation='index nologging'))
+            for table in metadata.sorted_tables:
+                output.append(NOLOGGING.format(type='INDEX', name=table.name))
+            output.append('\n')
+
+        else:
+
+            output.append('\n')
+            output.append(INSERT.format(operation='create indexes'))
+            tables = metadata.sorted_tables
+            output.extend(index_ddl(tables, engine, False))
+
+    output.insert(0, version_tbl_ddl + '\n\n')
 
     output = ''.join(output)
 
-    if args['--return']:
-        return output
-    else:
-        sys.stdout.write(output)
+    return output
 
 
-def delete_data(tables, engine):
+def delete_ddl(tables, engine):
 
     output = []
 
@@ -244,7 +271,9 @@ def constraint_ddl(tables, engine, drop=False):
     output = []
 
     for table in tables:
-        for constraint in table.constraints:
+        constraints = sorted(list(table.constraints), key=lambda k: k.name,
+                             reverse=drop)
+        for constraint in constraints:
 
             # Avoid duplicating primary key constraint definitions (they are
             # included in CREATE TABLE statements).
@@ -266,7 +295,9 @@ def index_ddl(tables, engine, drop=False):
     output = []
 
     for table in tables:
-        for index in table.indexes:
+        indexes = sorted(list(table.indexes), key=lambda k: k.name,
+                         reverse=drop)
+        for index in indexes:
 
             if not drop:
                 ddl = CreateIndex(index)

@@ -3,7 +3,7 @@
 # This script deploys a Dockerized python app image to Docker Hub, creates a
 # running ElasticBeanstalk deployment on AWS, and, if the version is final,
 # tags a release on GitHub and pushes the package to PyPi.
-# 
+#
 # If the commit is on master and the version is final, the script
 # deploys the app to the production AWS environment. If the commit is on
 # master with a non-final version, the dev AWS environment is used. If the
@@ -16,7 +16,7 @@
 #
 # The following environment variables must be set in order for the script to
 # succeed (use the environment variable project config on CircleCI):
-# 
+#
 # DOCKER_EMAIL, DOCKER_USER, and DOCKER_PASS to authenticate with Docker Hub.
 # APP_NAME to identify the app on Docker Hub and also AWS EB.
 # AWS_S3_BUCKET to identify the place where new AWS EB app version files
@@ -48,12 +48,19 @@ VERSION="$(${DIRNAME}/version.sh)"
 
 echo "Pushing image to Docker Hub registry."
 docker login -e "${DOCKER_EMAIL}" -u "${DOCKER_USER}" -p "${DOCKER_PASS}"
-docker push "dbhi/${APP_NAME}:${VERSION//+/-}"
+docker push "dbhi/${APP_NAME}:${BRANCH_TAG}"
 
 echo "Creating new Elastic Beanstalk version."
-DOCKERRUN_FILE="${VERSION-Dockerrun.aws.json}"
-sed "s/<TAG>/${VERSION//+/-}/" < "${DIRNAME}/Dockerrun.aws.json.template" > \
-    "${DOCKERRUN_FILE}"
+if [ ${#VERSION} -lt 6 ]; then
+    docker push "dbhi/${APP_NAME}:${VERSION}"
+    DOCKERRUN_FILE="${VERSION}-Dockerrun.aws.json"
+    sed "s/<TAG>/${VERSION}/" < "${DIRNAME}/Dockerrun.aws.json.template" > \
+        "${DOCKERRUN_FILE}"
+else
+    DOCKERRUN_FILE="${BRANCH_TAG}-Dockerrun.aws.json"
+    sed "s/<TAG>/${BRANCH_TAG}/" < "${DIRNAME}/Dockerrun.aws.json.template" > \
+        "${DOCKERRUN_FILE}"
+fi
 aws --region=us-east-1 s3 cp "${DOCKERRUN_FILE}" \
     "s3://${AWS_S3_BUCKET}/${DOCKERRUN_FILE}"
 aws --region=us-east-1 elasticbeanstalk create-application-version \
@@ -106,13 +113,13 @@ if [ "${BRANCH}" = "master" ]; then
 
     # If final version...
     if [ ${#VERSION} -lt 6 ]; then
-    
+
         echo "Creating GitHub release."
         git config --global user.email "aaron0browne@gmail.com"
         git config --global user.name "Aaron Browne"
         git tag -a "${VERSION}" -m "Release of version ${VERSION}"
         git push --tags
-    
+
         echo "Uploading package to PyPi."
         sed -e "s/<PYPI_USER>/${PYPI_USER}/" \
             -e "s/<PYPI_PASS>/${PYPI_PASS}/" \
@@ -120,13 +127,13 @@ if [ "${BRANCH}" = "master" ]; then
         python setup.py register
         python setup.py sdist bdist_wheel
         twine upload -u "${PYPI_USER}" -p "${PYPI_PASS}" dist/*
-    
+
         echo "Updating production deployment on Elastic Beanstalk."
         AWS_ENV_NAME="${PROD_AWS_ENV_NAME}"
         aws --region=us-east-1 elasticbeanstalk update-environment \
             --environment-name "${AWS_ENV_NAME}" \
             --version-label "${VERSION}"
-    
+
     fi
 
 # If not on master branch...

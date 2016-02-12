@@ -17,39 +17,38 @@ pip install dmsa
 In python:
 
 ```python
-import dmsa
+from sqlalchemy import MetaData
+from dmsa import make_model_from_service
 
-# This uses an http request to the data-models-service.
-dmsa.add_model_modules()
+metadata = MetaData()
+metadata = make_model_from_service('omop', '5.0.0',
+                                   'http://data-models.origins.link/',
+                                   metadata)
 
-# Now the data model modules are built and available for import.
-from dmsa.omop.v5_0_0.models import Base
-
-for tbl in Base.metadata.sorted_tables:
+for tbl in metadata.sorted_tables:
     print tbl.name
 ```
 
-Or:
+These models are dynamically generated at runtime from JSON endpoints provided by chop-dbhi/data-models-service, which reads data stored in chop-dbhi/data-models. Any data model stored there can be converted into SQLAlchemy models. At the time of writing, the following are available.
 
-```python
-import dmsa
-dmsa.add_model_modules()
-from dmsa.pedsnet.v2_0_0.models import Person, VisitPayer
+CAVEAT: The models are currently "Classical"-style and therefore un-mapped. See more information [here](https://github.com/chop-dbhi/data-models-sqlalchemy/issues/22).
 
-print VisitPayer.columns
-```
-
-These models are dynamically generated at runtime from JSON endpoints provided by chop-dbhi/data-models-service, which reads data stored in chop-dbhi/data-models. Each data model version available on the service is included in a dynamically generated python module. At the time of writing, the following are available. Any added to the service will use the same naming conventions.
-
-- **OMOP V4** at `omop.v4_0_0.models`
-- **OMOP V5** at `omop.v5_0_0.models`
-- **PEDSnet V1** at `pedsnet.v1_0_0.models`
-- **PEDSnet V2** at `pedsnet.v2_0_0.models`
-- **i2b2 V1.7** at `i2b2.v1_7_0.models`
-- **i2b2 PEDSnet V2** at `i2b2_pedsnet.v2_0_0.models`
-- **PCORnet V1** at `pcornet.v1_0_0.models`
-- **PCORnet V2** at `pcornet.v2_0_0.models`
-- **PCORnet V3** at `pcornet.v3_0_0.models`
+- i2b2
+    - 1.7.0
+- i2b2 for PEDSnet
+    - 2.0.1
+- OMOP
+    - 4.0.0
+    - 5.0.0
+- PCORnet
+    - 1.0.0
+    - 2.0.0
+    - 3.0.0
+- PEDSnet
+    - 1.0.0
+    - 2.0.0
+    - 2.1.0
+    - 2.2.0
 
 ## DDL and ERD Generation
 
@@ -57,10 +56,10 @@ Use of the included Dockerfile is highly recommended to avoid installing DBMS an
 
 The following DBMS dialects are supported when generating DDL:
 
-- **PostgreSQL** called as `postgresql`
-- **MySQL** called as `mysql`
-- **MS SQL Server** called as `mssql`
-- **Oracle** called as `oracle`
+- PostgreSQL
+- MySQL
+- MS SQL Server
+- Oracle
 
 ### With Docker:
 
@@ -70,49 +69,43 @@ Retrieve the image:
 docker pull dbhi/data-models-sqlalchemy
 ```
 
-Usage for DDL generation:
+Usage Message:
 
 ```sh
-docker run --rm dbhi/data-models-sqlalchemy dmsa ddl -h
+docker run --rm dbhi/data-models-sqlalchemy dmsa -h
 ```
 
 Generate OMOP V5 creation DDL for Oracle:
 
 ```sh
-docker run --rm dbhi/data-models-sqlalchemy dmsa ddl omop 5.0.0 oracle
+docker run --rm dbhi/data-models-sqlalchemy dmsa ddl -tci omop 5.0.0 oracle
 ```
 
 Generate OMOP V5 drop DDL for Oracle:
 
 ```sh
-docker run --rm dbhi/data-models-sqlalchemy dmsa ddl -d omop 5.0.0 oracle
+docker run --rm dbhi/data-models-sqlalchemy dmsa ddl -tci --drop omop 5.0.0 oracle
 ```
 
 Generate OMOP V5 data deletion DML for Oracle:
 
 ```sh
-docker run --rm dbhi/data-models-sqlalchemy dmsa ddl -x omop 5.0.0 oracle
-```
-
-Usage for ERD generation:
-
-```sh
-docker run --rm dbhi/data-models-sqlalchemy dmsa erd -h
+docker run --rm dbhi/data-models-sqlalchemy dmsa ddl --delete-data omop 5.0.0 oracle
 ```
 
 Generate i2b2 PEDSnet V2 ERD (the image will land at `./erd/i2b2_pedsnet_2.0.0_erd.png`):
 
 ```sh
-docker run --rm -v $(pwd)/erd:/erd dbhi/data-models-sqlalchemy dmsa erd i2b2_pedsnet 2.0.0 /erd/i2b2_pedsnet_2.0.0_erd.png
+docker run --rm -v $(pwd)/erd:/erd dbhi/data-models-sqlalchemy dmsa erd -o /erd/i2b2_pedsnet_2.0.0_erd.png i2b2_pedsnet 2.0.0
 ```
 
-The `graphviz` graphing package supports a number of other output formats, listed here (link pending), which are interpreted from the passed extension.
+The `graphviz` graphing package supports a number of other output formats, which are interpreted from the passed extension.
 
 ### Without Docker:
 
 Install the system requirements (see Dockerfile for details):
 
-- **Python 2.7**
+- Python 2.7
 - `graphviz` for ERD generation
 - Oracle `instantclient-basic` and `-sdk` and `libaio1` for Oracle DDL generation
 - `libpq-dev` for PostgreSQL DDL generation
@@ -133,41 +126,35 @@ Install the data-models-sqlalchemy python package:
 pip install dmsa
 ```
 
-Usage for DDL generation:
+Usage Message:
 
 ```sh
-dmsa ddl -h
+dmsa -h
 ```
 
 Generate OMOP V5 creation DDL for Oracle:
 
 ```sh
-dmsa ddl omop 5.0.0 oracle
+dmsa ddl -tci omop 5.0.0 oracle
 ```
 
 Generate OMOP V5 drop DDL for Oracle:
 
 ```sh
-dmsa ddl -d omop 5.0.0 oracle
+dmsa ddl -tci --drop omop 5.0.0 oracle
 ```
 
 Generate OMOP V5 data deletion DML for Oracle:
 
 ```sh
-dmsa ddl -x omop 5.0.0 oracle
-```
-
-Usage for ERD generation:
-
-```sh
-dmsa erd -h
+dmsa ddl --delete-data omop 5.0.0 oracle
 ```
 
 Generate i2b2 PEDSnet V2 ERD (the image will land at `./erd/i2b2_pedsnet_2.0.0_erd.png`):
 
 ```sh
-mkdir erd
-dmsa erd i2b2_pedsnet 2.0.0 ./erd/i2b2_pedsnet_2.0.0_erd.png
+mkdir -p erd
+dmsa erd -o ./erd/i2b2_pedsnet_2.0.0_erd.png i2b2_pedsnet 2.0.0
 ```
 
 ## Web Service
@@ -180,6 +167,10 @@ The web service uses a [Gunicorn](http://gunicorn.org/) server in the Docker con
 - Drop DDL for only `table`, `constraint`, or `index` elements at `/<model>/<version>/drop/<dialect>/<elements>`
 - Data deletion DML at `/<model>/<version>/delete/<dialect>/`
 - ERDs at `/<model>/<version>/erd/`
+- Oracle logging scripts at `/<model>/<version>/logging/oracle/`
+- Oracle logging scripts for only `table` or `index` elements at `/<model>/<version>/logging/oracle/<elements>/`
+- Oracle nologging scripts at `/<model>/<version>/nologging/oracle/`
+- Oracle nologging scripts for only `table` or `index` elements at `/<model>/<version>/logging/oracle/<elements>/`
 
 ### With Docker:
 
@@ -203,14 +194,14 @@ Install Flask:
 pip install Flask
 ```
 
-Usage:
+Usage Message:
 
 ```sh
-dmsa start -h
+dmsa -h
 ```
 
 Run:
 
 ```sh
-dmsa start                              # Uses Flask defaults of 127.0.0.1:5000
+dmsa serve                              # Uses Flask defaults of 127.0.0.1:5000
 ```
