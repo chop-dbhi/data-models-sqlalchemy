@@ -1,5 +1,5 @@
 import os
-from dmsa.makers import make_model_from_service
+from dmsa.makers import make_model_from_service  # noqa
 
 serial = os.environ.get('BUILD_NUM') or '0'
 sha = os.environ.get('COMMIT_SHA1') or '0'
@@ -9,7 +9,7 @@ __version_info__ = {
     'major': 0,
     'minor': 5,
     'micro': 8,
-    'releaselevel': 'alpha',
+    'releaselevel': 'final',
     'serial': serial,
     'sha': sha
 }
