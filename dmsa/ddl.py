@@ -109,11 +109,11 @@ def generate(model, model_version, dialect, tables=True, constraints=True,
         'version_history', MetaData(),
         Column('datetime', DateTime(), primary_key=True,
                server_default=text('CURRENT_TIMESTAMP')),
-        Column('operation', String(24)),
+        Column('operation', String(100)),
         Column('model', String(16)),
-        Column('model_version', String(16)),
-        Column('dms_version', String(16)),
-        Column('dmsa_version', String(16))
+        Column('model_version', String(50)),
+        Column('dms_version', String(50)),
+        Column('dmsa_version', String(50))
     )
 
     version_tbl_ddl = str(CreateTable(version_history).
