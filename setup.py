@@ -2,8 +2,8 @@ import sys
 from setuptools import setup, find_packages
 from dmsa import __version__
 
-if sys.version_info < (2, 7) or sys.version_info > (3, 0):
-    raise EnvironmentError('Python 2.7.x is required')
+if sys.version_info < (2, 7):
+    raise EnvironmentError('Python 2.7.x or greater is required')
 
 with open('README.md', 'r') as f:
     long_description = f.read()
@@ -30,7 +30,8 @@ kwargs = {
     'classifiers': [
         'Development Status :: 4 - Beta',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'Intended Audience :: Healthcare Industry',

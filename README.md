@@ -120,7 +120,8 @@ pip install cx-Oracle            # for Oracle DDL generation
 pip install psycopg2             # for PostgreSQL DDL generation
 pip install PyMySQL              # for MySQL DDL generation
 pip install pyodbc               # for MS SQL Server DDL generation
-pip install ERAlchemy==0.0.28    # OPTIONAL; only if you need to make ERDs
+pip install ERAlchemy            # OPTIONAL; only if you need to make ERDs
+pip install pygraphviz           # for ERD generation
 ```
 
 Install the data-models-sqlalchemy python package:

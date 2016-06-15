@@ -1,4 +1,4 @@
-FROM python:2.7
+FROM python:3.5
 
 MAINTAINER Aaron Browne <brownea@email.chop.edu>
 
@@ -29,12 +29,11 @@ RUN apt-get -qq update && \
 
 # Finally install Python dependencies.
 COPY requirements.txt /app/
-RUN pip install \
-    cx-Oracle==5.1.3 \
-    ERAlchemy==0.0.28 \
-    gunicorn==19.3.0 \
-    MySQL-python==1.2.5 \
-    psycopg2==2.6 \
+RUN pip install -r /app/requirements.txt && pip install \
+    cx-Oracle==5.2.1 \
+    gunicorn==19.6.0 \
+    mysqlclient==1.3.7 \
+    psycopg2==2.6.1 \
     pygraphviz==1.3.1 \
     pyodbc==3.0.10
 
