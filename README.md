@@ -4,7 +4,7 @@
 
 SQLAlchemy models and DDL and ERD generation for [chop-dbhi/data-models-service](https://github.com/chop-dbhi/data-models-service) style JSON endpoints.
 
-Web service available at http://dmsa.a0b.io/
+Web service available at https://data-models-sqlalchemy.research.chop.edu/
 
 ## SQLAlchemy Models
 

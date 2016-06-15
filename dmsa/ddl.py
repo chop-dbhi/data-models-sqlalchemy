@@ -289,8 +289,8 @@ def constraint_ddl(tables, engine, drop=False):
     output = []
 
     for table in tables:
-        constraints = sorted(list(table.constraints), key=lambda k: k.name,
-                             reverse=drop)
+        constraints = sorted(list(table.constraints),
+                             key=lambda k: k.name or '', reverse=drop)
         for constraint in constraints:
 
             # Avoid duplicating primary key constraint definitions (they are
