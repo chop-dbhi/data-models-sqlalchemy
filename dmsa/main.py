@@ -6,9 +6,9 @@ Functionality:
   sources to generate ERDs. Serves both through a basic web service.
 
 Usage:
-  dmsa ddl [--service=URL] [-tci] [-d | -x | -n | -l] [-o FILE] <model> <model_version> <dialect>
-  dmsa erd [--service=URL] -o FILE <model> <model_version>
-  dmsa serve [--service=URL] [--host=HOSTNAME --port=PORT --debug]
+  dmsa ddl [--service=URL] [--log=LEVEL] [-tci] [-d | -x | -n | -l] [-o FILE] <model> <model_version> <dialect>
+  dmsa erd [--service=URL] [--log=LEVEL] -o FILE <model> <model_version>
+  dmsa serve [--service=URL] [--log=LEVEL] [--host=HOSTNAME --port=PORT --debug]
   dmsa (-h | --help)
   dmsa --version
 
@@ -20,25 +20,41 @@ Options:
   -i --indexes         Include indexes when generating DDL.
   -d --drop            Generate DDL to drop, instead of create, objects.
   -x --delete-data     Generate DML to delete data from the model.
-  -n --nologging       Generate Oracle DDL to make objects "nologging".
-  -l --logging         Generate Oracle DDL to make objects "logging".
+  -n --nologging       Generate DDL to make objects "nologging" (Oracle and PostgreSQL only).
+  -l --logging         Generate DDL to make objects "logging" (Oracle and PostgreSQL only).
   -o --output=FILE     Output file for DDL or ERD.
   --host=HOSTNAME      The web service hostname [default: 127.0.0.1].
   --port=PORT          The web service port to listen on [default: 5000].
   --debug              Enable debug mode in the web service.
-  --service=URL        Base URL of the data models service to use
-                       [default: https://data-models-service.research.chop.edu/].
+  --log=LEVEL          Level of logging to output (debug, info, warning, error, or critical) [default: WARNING].
+  --service=URL        Base URL of the data models service to use [default: https://data-models-service.research.chop.edu/].
 
 """  # noqa
 
 
 def main():
     import sys
+    import logging
     from docopt import docopt
     from dmsa import __version__
 
     # Parse command line arguments.
     args = docopt(__doc__, argv=sys.argv[1:], version=__version__)
+
+    # Configure top-level dmsa logger for use as an application.
+    logger = logging.getLogger('dmsa')
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s %(name)-12s '
+                                  '%(levelname)-8s %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    try:
+        level = gettattr(logging, args['--log'])
+    except AttributeError:
+        raise RuntimeError('log level %s not found'.format(args['--log']))
+
+    # Get module-specific logger.
+    logger = logging.getLogger(__name__)
 
     if args['ddl']:
         from dmsa import ddl

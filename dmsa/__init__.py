@@ -1,4 +1,5 @@
 import os
+import logging
 from dmsa.makers import make_model_from_service  # noqa
 
 serial = os.environ.get('BUILD_NUM') or '0'
@@ -24,3 +25,13 @@ def get_version(short=False):
     return ''.join(vers)
 
 __version__ = get_version()
+
+# Configure top-level dmsa logger with NullHandler for use as a library.
+try:  # Python 2.7+
+    from logging import NullHandler
+except ImportError:
+    class NullHandler(logging.Handler):
+        def emit(self, record):
+            pass
+
+logging.getLogger('dmsa').addHandler(NullHandler())
