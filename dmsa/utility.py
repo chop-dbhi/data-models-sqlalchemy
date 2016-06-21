@@ -1,3 +1,5 @@
+from builtins import object
+import os
 import requests
 from functools import wraps
 from flask import make_response
@@ -80,7 +82,7 @@ def get_template_models(service):
 
 def get_template_dialects():
     dialects = []
-    for k, v in PRETTY_DIALECTS.iteritems():
+    for k, v in list(PRETTY_DIALECTS.items()):
         dialects.append({
             'name': k,
             'pretty': v
@@ -95,7 +97,7 @@ def add_response_headers(headers={}):
         def decorated_function(*args, **kwargs):
             resp = make_response(f(*args, **kwargs))
             h = resp.headers
-            for header, value in headers.items():
+            for header, value in list(headers.items()):
                 h[header] = value
             return resp
         return decorated_function

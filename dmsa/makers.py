@@ -185,7 +185,7 @@ def make_model(data_model, metadata):
     # Construct and add constraints to the relevant tables.
 
     for con_type, con_list in \
-            data_model['schema']['constraints'].iteritems():
+            list(data_model['schema']['constraints'].items()):
 
         if con_type != 'not_null':
 

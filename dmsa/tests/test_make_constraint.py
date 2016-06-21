@@ -14,7 +14,7 @@ CONSTRAINT_MAP = {
 
 def test_name():
 
-    for con_type, con_class in CONSTRAINT_MAP.iteritems():
+    for con_type, con_class in list(CONSTRAINT_MAP.items()):
 
         if con_type == 'foreign_keys':
             con_json = {'name': 'test_con', 'source_field': 'id',
@@ -32,7 +32,7 @@ def check_name(constraint, name):
 
 def test_types():
 
-    for con_type, con_class in CONSTRAINT_MAP.iteritems():
+    for con_type, con_class in list(CONSTRAINT_MAP.items()):
 
         if con_type == 'foreign_keys':
             con_json = {'name': 'test_con', 'source_field': 'id',
@@ -46,7 +46,7 @@ def test_types():
 
 def test_fields():
 
-    for con_type, con_class in CONSTRAINT_MAP.iteritems():
+    for con_type, con_class in list(CONSTRAINT_MAP.items()):
 
         if con_type == 'foreign_keys':
             con_json = {'name': 'test_con', 'source_field': 'id',

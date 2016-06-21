@@ -1,3 +1,4 @@
+from builtins import str
 from sqlalchemy import (create_engine, MetaData, Table, Column,
                         Integer, Numeric, String, Date, DateTime, text)
 from sqlalchemy.ext.compiler import compiles

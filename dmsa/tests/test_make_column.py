@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+from builtins import range
 
 from nose.tools import ok_, eq_
 from sqlalchemy import (Integer, Numeric, String, Date, DateTime, Time,

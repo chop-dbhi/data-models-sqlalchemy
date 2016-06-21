@@ -26,7 +26,7 @@ metadata = make_model_from_service('omop', '5.0.0',
                                    metadata)
 
 for tbl in metadata.sorted_tables:
-    print tbl.name
+    print(tbl.name)
 ```
 
 These models are dynamically generated at runtime from JSON endpoints provided by chop-dbhi/data-models-service, which reads data stored in chop-dbhi/data-models. Any data model stored there can be converted into SQLAlchemy models. At the time of writing, the following are available.
