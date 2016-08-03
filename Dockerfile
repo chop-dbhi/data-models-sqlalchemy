@@ -35,7 +35,9 @@ RUN pip install -r /app/requirements.txt && pip install \
     mysqlclient==1.3.7 \
     psycopg2==2.6.1 \
     pygraphviz==1.3.1 \
-    pyodbc==3.0.10
+    pyodbc==3.0.10 \
+    gunicorn==19.6.0 \
+    ERAlchemy==1.0.13
 
 # Copy app files.
 COPY . /app/

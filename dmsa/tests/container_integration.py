@@ -74,5 +74,5 @@ def check_container_endpoint(endpoint):
     # function follows redirects automatically and will report the final
     # status code, so this works even for the erd endpoints.
     r = requests.get(os.environ.get('DMSA_TEST_CONTAINER_URL',
-                                    'http://127.0.0.1:80/') + endpoint)
+                                    'http://127.0.0.1:5000/') + endpoint)
     eq_(r.status_code, 200)

@@ -7,7 +7,7 @@ from dmsa.utility import get_template_models, get_template_dialects
 default_outpath = os.path.join(os.getcwd(),
                                'dmsa_%s_all_ddl.sql' % __version__)
 outpath = sys.argv[1] if len(sys.argv) > 1 else default_outpath
-baseurl = os.environ.get('DMSA_TEST_CONTAINER_URL', 'http://127.0.0.1:80/')
+baseurl = os.environ.get('DMSA_TEST_CONTAINER_URL', 'http://127.0.0.1:5000/')
 
 f = open(outpath, 'w')
 
