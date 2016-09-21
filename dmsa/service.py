@@ -120,7 +120,10 @@ def create_erd_route(model, version):
     except OSError:
         pass
 
-    erd.write(model, version, filepath, app.config['service'])
+    try:
+        erd.write(model, version, filepath, app.config['service'])
+    except ImportError:
+        return render_template('erd_500.html'), 500
 
     return redirect(url_for('erd_route', model=model, version=version,
                             filename=filename))

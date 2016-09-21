@@ -1,4 +1,5 @@
 import os
+from nose import SkipTest
 from nose.tools import ok_
 from dmsa import erd
 
@@ -13,5 +14,8 @@ SERVICE = os.environ.get('DMSA_TEST_SERVICE',
                          'http://data-models.origins.link/')
 
 def test_all():
-    erd.write('omop', '5.0.0', 'test_erd_out.png', SERVICE)
+    try:
+        erd.write('omop', '5.0.0', 'test_erd_out.png', SERVICE)
+    except ImportError:
+        raise SkipTest('Skipping erd test; ERLAlchemy package not installed')
     ok_(os.path.exists('test_erd_out.png'))

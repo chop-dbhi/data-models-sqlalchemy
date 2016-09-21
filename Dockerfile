@@ -37,7 +37,8 @@ RUN pip install pygraphviz==1.3.1 \
     psycopg2==2.6 \
     MySQL-python==1.2.5 \
     pyodbc==3.0.10 \
-    gunicorn==19.3.0
+    gunicorn==19.3.0 \
+    ERAlchemy==0.0.28
 
 # Copy app files.
 COPY . /app/

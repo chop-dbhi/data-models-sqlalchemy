@@ -39,6 +39,8 @@ dependencies:
       --install-option="--library-path=/usr/lib/graphviz/"
     # Install remaining requirements.
     - pip install -r requirements.txt
+    # Install optional ERAlchemy package, needed for ERD generation by service
+    - pip install ERAlchemy==0.0.28
     # Install dmsa app.
     - python setup.py install
     # Install tox for testing.

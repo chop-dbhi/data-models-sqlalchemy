@@ -52,6 +52,8 @@ CAVEAT: The models are currently "Classical"-style and therefore un-mapped. See 
 
 ## DDL and ERD Generation
 
+Entity Relationship Diagram generation requires the optional ERAlchemy package. This is included by the Dockerfile but not by the `dmsa` Python package.
+
 Use of the included Dockerfile is highly recommended to avoid installing DBMS and graphing specific system requirements.
 
 The following DBMS dialects are supported when generating DDL:
@@ -118,6 +120,7 @@ pip install cx-Oracle            # for Oracle DDL generation
 pip install psycopg2             # for PostgreSQL DDL generation
 pip install PyMySQL              # for MySQL DDL generation
 pip install pyodbc               # for MS SQL Server DDL generation
+pip install ERAlchemy==0.0.28    # OPTIONAL; only if you need to make ERDs
 ```
 
 Install the data-models-sqlalchemy python package:

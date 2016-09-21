@@ -43,10 +43,15 @@ def test_endpoints():
 def check_endpoint(endpoint):
     r = test_app.get(endpoint)
     if endpoint.endswith('/erd/'):
-        eq_(r.status_code, 302)
-        # Set endpoint to redirect location stripped of hostname and retest.
-        endpoint = r.location[r.location.find('/', 8):]
-        r = test_app.get(endpoint)
-        eq_(r.status_code, 200)
+        try:
+            import eralchemy
+        except ImportError:
+            eq_(r.status_code, 500)
+        else:
+            eq_(r.status_code, 302)
+            # Set endpoint to redirect location stripped of hostname and retest.
+            endpoint = r.location[r.location.find('/', 8):]
+            r = test_app.get(endpoint)
+            eq_(r.status_code, 200)
     else:
         eq_(r.status_code, 200)

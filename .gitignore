@@ -5,3 +5,5 @@ instance
 .coverage
 cover
 dist
+test_erd_out.png
+build/

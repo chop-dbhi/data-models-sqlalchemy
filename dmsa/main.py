@@ -31,7 +31,6 @@ Options:
 
 """
 
-
 def main():
     import sys
     from docopt import docopt
@@ -59,8 +58,13 @@ def main():
 
     elif args['erd']:
         from dmsa import erd
-        return erd.write(args['<model>'], args['<model_version>'],
-                         args['--service'], args['--output'])
+        try:
+            return erd.write(args['<model>'], args['<model_version>'],
+                             args['--output'], args['--service'])
+        except ImportError:
+            sys.stderr.write(
+                'ERD not supported because ERAlchemy module not installed\n')
+            sys.exit(1)
 
     elif args['serve']:
         from dmsa import service
