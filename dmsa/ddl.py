@@ -1,4 +1,3 @@
-from datetime import datetime
 from sqlalchemy import (create_engine, MetaData, Table, Column,
                         Integer, Numeric, String, DateTime, text)
 from sqlalchemy.ext.compiler import compiles
@@ -69,7 +68,8 @@ def _compile_constraint_postgresql(constraint, compiler, **kw):
 
 def generate(model, model_version, dialect, tables=True, constraints=True,
              indexes=True, drop=False, delete_data=False, nologging=False,
-             logging=False, service='http://data-models.origins.link/'):
+             logging=False,
+             service='https://data-models-service.research.chop.edu/'):
     """Generate data definition language for the data model specified in the
     given DBMS dialect.
 
@@ -98,8 +98,8 @@ def generate(model, model_version, dialect, tables=True, constraints=True,
     output = []
 
     INSERT = ("INSERT INTO version_history (operation, model, model_version, "
-              "dms_version, dmsa_version) VALUES ('{operation}', '"
-              + model + "', '" + model_version + "', '" +
+              "dms_version, dmsa_version) VALUES ('{operation}', '" +
+              model + "', '" + model_version + "', '" +
               service_version + "', '" + __version__ + "');\n\n")
 
     if dialect.startswith('oracle'):
@@ -308,7 +308,3 @@ def index_ddl(tables, engine, drop=False):
             output.append(';\n\n')
 
     return output
-
-
-if __name__ == '__main__':
-    main()

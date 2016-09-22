@@ -22,7 +22,7 @@ from dmsa import make_model_from_service
 
 metadata = MetaData()
 metadata = make_model_from_service('omop', '5.0.0',
-                                   'http://data-models.origins.link/',
+                                   'https://data-models-service.research.chop.edu/',
                                    metadata)
 
 for tbl in metadata.sorted_tables:

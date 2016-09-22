@@ -1,14 +1,13 @@
 import os
-import sys
 from flask import (Flask, Response, request, send_file, render_template,
                    redirect, url_for)
 from dmsa import ddl, erd, __version__
-from dmsa.utility import (PRETTY_MODELS, PRETTY_DIALECTS, get_model_json,
-                          get_service_version, get_template_models,
+from dmsa.utility import (get_service_version, get_template_models,
                           get_template_dialects, ReverseProxied, dmsa_version)
 
 app = Flask('dmsa')
 app.wsgi_app = ReverseProxied(app.wsgi_app)
+
 
 @app.route('/')
 @dmsa_version
@@ -163,7 +162,8 @@ def logging_route(model, version, elements):
     return resp
 
 
-@app.route('/<model>/<version>/nologging/oracle/', defaults={'elements': 'all'})
+@app.route('/<model>/<version>/nologging/oracle/',
+           defaults={'elements': 'all'})
 @app.route('/<model>/<version>/nologging/oracle/<elements>/')
 @dmsa_version
 def nologging_route(model, version, elements):
@@ -201,7 +201,3 @@ def build_app(service):
     app.config['dialects'] = get_template_dialects()
 
     return app
-
-
-if __name__ == '__main__':
-    main()

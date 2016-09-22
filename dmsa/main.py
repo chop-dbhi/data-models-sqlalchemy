@@ -27,9 +27,10 @@ Options:
   --port=PORT          The web service port to listen on [default: 5000].
   --debug              Enable debug mode in the web service.
   --service=URL        Base URL of the data models service to use
-                       [default: http://data-models.origins.link/].
+                       [default: https://data-models-service.research.chop.edu/].
 
-"""
+"""  # noqa
+
 
 def main():
     import sys

@@ -23,7 +23,3 @@ def write(model, model_version, output, service):
     from eralchemy import render_er
 
     render_er(metadata, output)
-
-
-if __name__ == '__main__':
-    main()

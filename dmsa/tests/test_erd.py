@@ -11,7 +11,8 @@ from dmsa import erd
 # the output location.
 
 SERVICE = os.environ.get('DMSA_TEST_SERVICE',
-                         'http://data-models.origins.link/')
+                         'https://data-models-service.research.chop.edu/')
+
 
 def test_all():
     try:
