@@ -3,7 +3,10 @@ from setuptools import setup, find_packages
 from dmsa import __version__
 
 if sys.version_info < (2, 7):
-    raise EnvironmentError('Python 2.7.x or greater is required')
+    raise EnvironmentError('Python 2 < 2.7 is not supported')
+
+if sys.version_info >= (3,) and sys.version_info < (3, 4):
+    raise EnvironmentError('Python 3 < 3.4 is not supported.')
 
 with open('README.md', 'r') as f:
     long_description = f.read()
@@ -29,9 +32,9 @@ kwargs = {
     'keywords': ['healthcare', 'data models', 'SQLAlchemy', 'DDL', 'ERD'],
     'classifiers': [
         'Development Status :: 4 - Beta',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'Intended Audience :: Healthcare Industry',
