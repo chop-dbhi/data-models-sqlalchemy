@@ -1,25 +1,25 @@
 from __future__ import unicode_literals
 
-from sqlalchemy import (Column, Integer, Numeric, Float, String, Date,
-                        DateTime, Time, Text, Boolean, LargeBinary, Table)
-from sqlalchemy.schema import (PrimaryKeyConstraint, ForeignKeyConstraint,
-                               Index, UniqueConstraint)
 
-DATATYPE_MAP = {
-    'integer': Integer,
-    'number': Numeric,
-    'decimal': Numeric,
-    'float': Float,
-    'string': String,
-    'date': Date,
-    'datetime': DateTime,
-    'timestamp': DateTime,
-    'time': Time,
-    'text': Text,
-    'clob': Text,
-    'boolean': Boolean,
-    'blob': LargeBinary
-}
+def get_datatype_map():
+    from sqlalchemy import (Integer, Numeric, Float, String, Date,
+                            DateTime, Time, Text, Boolean, LargeBinary)
+
+    return {
+        'integer': Integer,
+        'number': Numeric,
+        'decimal': Numeric,
+        'float': Float,
+        'string': String,
+        'date': Date,
+        'datetime': DateTime,
+        'timestamp': DateTime,
+        'time': Time,
+        'text': Text,
+        'clob': Text,
+        'boolean': Boolean,
+        'blob': LargeBinary
+    }
 
 
 def make_index(index_json):
@@ -28,6 +28,8 @@ def make_index(index_json):
     `index_json` is a declarative style dictionary index object, as defined by
     the chop-dbhi/data-models package.
     """
+
+    from sqlalchemy.schema import Index
 
     # Transform empty string to None in order to trigger auto-generation.
 
@@ -45,6 +47,9 @@ def make_constraint(constraint_type, constraint_json):
     `constraint_json` is a declarative style dictionary constraint object, as
     defined by the chop-dbhi/data-models package.
     """
+
+    from sqlalchemy.schema import (PrimaryKeyConstraint, ForeignKeyConstraint,
+                                   UniqueConstraint)
 
     # Transform empty string to None in order to trigger auto-generation.
 
@@ -82,10 +87,13 @@ def make_column(field, not_null_flag=False):
     `not_null_flag` signifies that a not null constraint should be included.
     """
 
+    from sqlalchemy import (Column, String, Numeric)
+
     column_kwargs = {}
     column_kwargs['name'] = field['name']
 
     type_string = field['type']
+    DATATYPE_MAP = get_datatype_map()
     type_class = DATATYPE_MAP[type_string]
     type_kwargs = {}
 
@@ -125,6 +133,8 @@ def make_table(table_json, metadata, not_nulls):
     `not_nulls` is a list of table-relevant not null constraints matching the
     chop-dbhi/data-models specified format.
     """
+
+    from sqlalchemy import Table
 
     table = Table(table_json['name'], metadata)
 
