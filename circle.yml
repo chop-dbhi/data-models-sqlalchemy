@@ -32,6 +32,8 @@ dependencies:
     # Add a cache directory for the jq install.
     - "~/bin"
   override:
+    # Install graphviz.
+    - sudo apt-get -qq update && sudo apt-get -qq install -y graphviz
     # Install pygraphviz pointing specifically to the library.
     # see: https://github.com/pygraphviz/pygraphviz/issues/71
     - pip install pygraphviz
