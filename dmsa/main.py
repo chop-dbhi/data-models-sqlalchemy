@@ -27,9 +27,9 @@ Options:
   --port=PORT          The web service port to listen on [default: 5000].
   --debug              Enable debug mode in the web service.
   --service=URL        Base URL of the data models service to use
-                       [default: http://data-models.origins.link/].
+                       [default: https://data-models-service.research.chop.edu/].
 
-"""
+"""  # noqa
 
 
 def main():
@@ -59,8 +59,13 @@ def main():
 
     elif args['erd']:
         from dmsa import erd
-        return erd.write(args['<model>'], args['<model_version>'],
-                         args['--service'], args['--output'])
+        try:
+            return erd.write(args['<model>'], args['<model_version>'],
+                             args['--output'], args['--service'])
+        except ImportError:
+            sys.stderr.write(
+                'ERD not supported because ERAlchemy module not installed\n')
+            sys.exit(1)
 
     elif args['serve']:
         from dmsa import service

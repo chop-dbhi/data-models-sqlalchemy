@@ -4,7 +4,7 @@ from dmsa import service
 from dmsa.utility import get_template_models
 
 SERVICE = os.environ.get('DMSA_TEST_SERVICE',
-                         'http://data-models.origins.link/')
+                         'https://data-models-service.research.chop.edu/')
 
 app = service.build_app(SERVICE)
 app.config['TESTING'] = True
@@ -35,6 +35,7 @@ for m in get_template_models(SERVICE):
             ENDPOINTS.append('/%s/%s/drop/sqlite/%s/' %
                              (m['name'], v['name'], e))
 
+
 def test_endpoints():
     for endpoint in ENDPOINTS:
         yield check_endpoint, endpoint
@@ -43,10 +44,16 @@ def test_endpoints():
 def check_endpoint(endpoint):
     r = test_app.get(endpoint)
     if endpoint.endswith('/erd/'):
-        eq_(r.status_code, 302)
-        # Set endpoint to redirect location stripped of hostname and retest.
-        endpoint = r.location[r.location.find('/', 8):]
-        r = test_app.get(endpoint)
-        eq_(r.status_code, 200)
+        try:
+            import eralchemy  # noqa
+        except ImportError:
+            eq_(r.status_code, 500)
+        else:
+            eq_(r.status_code, 302)
+            # Set endpoint to redirect location stripped of hostname and
+            # retest.
+            endpoint = r.location[r.location.find('/', 8):]
+            r = test_app.get(endpoint)
+            eq_(r.status_code, 200)
     else:
         eq_(r.status_code, 200)

@@ -29,15 +29,14 @@ RUN apt-get -qq update && \
 
 # Finally install Python dependencies.
 COPY requirements.txt /app/
-RUN pip install pygraphviz==1.3.1 \
-    --install-option="--include-path=/usr/include/graphviz" \
-    --install-option="--library-path=/usr/lib/graphviz/" && \
-    pip install -r /app/requirements.txt && pip install \
+RUN pip install \
     cx-Oracle==5.1.3 \
-    psycopg2==2.6 \
+    ERAlchemy==0.0.28 \
+    gunicorn==19.3.0 \
     MySQL-python==1.2.5 \
-    pyodbc==3.0.10 \
-    gunicorn==19.3.0
+    psycopg2==2.6 \
+    pygraphviz==1.3.1 \
+    pyodbc==3.0.10
 
 # Copy app files.
 COPY . /app/
@@ -48,4 +47,4 @@ RUN pip install /app/
 # Set up run environment.
 EXPOSE 80
 WORKDIR /app
-CMD ["gunicorn", "--bind=0.0.0.0:80", "--workers=4", "dmsa.service:build_app(\"http://data-models.origins.link/\")"]
+CMD ["gunicorn", "--bind=0.0.0.0:80", "--workers=4", "dmsa.service:build_app(\"http://data-models-service.research.chop.edu/\")"]

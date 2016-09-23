@@ -23,7 +23,7 @@ for container in containers:
 ENDPOINTS = ['']
 
 for m in get_template_models(os.environ.get('DMSA_TEST_SERVICE') or
-                             'http://data-models.origins.link/'):
+                             'https://data-models-service.research.chop.edu/'):
 
     ENDPOINTS.append('%s/' % m['name'])
 

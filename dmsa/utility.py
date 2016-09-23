@@ -1,4 +1,3 @@
-import os
 import requests
 from functools import wraps
 from flask import make_response
@@ -33,15 +32,18 @@ def get_model_json(model, model_version, service):
                               '?format=json']))
     return r.json()
 
+
 def get_service_version(service):
     """Retrieve version of the specified service."""
     r = requests.get(service)
     return r.headers['User-Agent'].split(' ')[0].split('/')[1]
 
+
 def get_models_json(service):
     """Retrieve the models and their versions from the service."""
     r = requests.get(service + 'models?format=json')
     return r.json()
+
 
 def get_template_models(service):
     models = []
@@ -53,7 +55,8 @@ def get_template_models(service):
                 model['versions'].append({
                     'name': svc_model['version'],
                     'release_level': svc_model['release']['level'],
-                    'release_color': RELEASE_COLORS[svc_model['release']['level']]
+                    'release_color':
+                        RELEASE_COLORS[svc_model['release']['level']]
                 })
                 break
         else:
@@ -64,7 +67,8 @@ def get_template_models(service):
                 'versions': [{
                     'name': svc_model['version'],
                     'release_level': svc_model['release']['level'],
-                    'release_color': RELEASE_COLORS[svc_model['release']['level']]
+                    'release_color':
+                        RELEASE_COLORS[svc_model['release']['level']]
                 }]
             })
 
@@ -72,6 +76,7 @@ def get_template_models(service):
         model['versions'] = sorted(model['versions'], key=lambda k: k['name'])
 
     return sorted(models, key=lambda k: k['pretty'].lower())
+
 
 def get_template_dialects():
     dialects = []
@@ -81,6 +86,7 @@ def get_template_dialects():
             'pretty': v
         })
     return sorted(dialects, key=lambda k: k['pretty'])
+
 
 def add_response_headers(headers={}):
     """This decorator adds the headers passed in to the response"""
@@ -94,6 +100,7 @@ def add_response_headers(headers={}):
             return resp
         return decorated_function
     return decorator
+
 
 def dmsa_version(f):
     """This decorator passes User-Agent: DMSA/<version>

@@ -10,7 +10,8 @@ from dmsa import ddl
 # output strings.
 
 SERVICE = os.environ.get('DMSA_TEST_SERVICE',
-                         'http://data-models.origins.link/')
+                         'https://data-models-service.research.chop.edu/')
+
 
 def test_all():
     ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', service=SERVICE)
@@ -63,28 +64,34 @@ def test_delete():
     ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', delete_data=True)
     ok_(ddl_output)
 
+
 def test_logging_all():
     ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', logging=True)
     ok_(ddl_output)
 
+
 def test_nologging_all():
     ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', nologging=True)
     ok_(ddl_output)
+
 
 def test_logging_notables():
     ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', logging=True,
                               tables=False)
     ok_(ddl_output)
 
+
 def test_nologging_notables():
     ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', nologging=True,
                               tables=False)
     ok_(ddl_output)
 
+
 def test_logging_noindexes():
     ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', logging=True,
                               indexes=False)
     ok_(ddl_output)
+
 
 def test_nologging_noindexes():
     ddl_output = ddl.generate('omop', '5.0.0', 'sqlite', nologging=True,

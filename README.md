@@ -22,7 +22,7 @@ from dmsa import make_model_from_service
 
 metadata = MetaData()
 metadata = make_model_from_service('omop', '5.0.0',
-                                   'http://data-models.origins.link/',
+                                   'https://data-models-service.research.chop.edu/',
                                    metadata)
 
 for tbl in metadata.sorted_tables:
@@ -51,6 +51,8 @@ CAVEAT: The models are currently "Classical"-style and therefore un-mapped. See 
     - 2.2.0
 
 ## DDL and ERD Generation
+
+Entity Relationship Diagram generation requires the optional ERAlchemy package. This is included by the Dockerfile but not by the `dmsa` Python package.
 
 Use of the included Dockerfile is highly recommended to avoid installing DBMS and graphing specific system requirements.
 
@@ -118,6 +120,7 @@ pip install cx-Oracle            # for Oracle DDL generation
 pip install psycopg2             # for PostgreSQL DDL generation
 pip install PyMySQL              # for MySQL DDL generation
 pip install pyodbc               # for MS SQL Server DDL generation
+pip install ERAlchemy==0.0.28    # OPTIONAL; only if you need to make ERDs
 ```
 
 Install the data-models-sqlalchemy python package:
