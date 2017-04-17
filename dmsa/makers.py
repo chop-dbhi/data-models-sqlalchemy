@@ -138,7 +138,9 @@ def make_table(table_json, metadata, not_nulls):
 
     table = Table(table_json['name'], metadata)
 
-    for field in table_json.get('fields', []):
+    fields = table_json.get('fields', []) or []
+
+    for field in fields:
 
         not_null_flag = False
 
