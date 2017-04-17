@@ -1,5 +1,5 @@
 from sqlalchemy import (create_engine, MetaData, Table, Column,
-                        Integer, Numeric, String, DateTime, text)
+                        Integer, Numeric, String, Date, DateTime, text)
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.schema import (CreateTable, AddConstraint, CreateIndex,
                                DropTable, DropConstraint, DropIndex,
@@ -16,10 +16,16 @@ def _compile_numeric_oracle(type_, compiler, **kw):
     return 'NUMBER'
 
 
-# and Integer type to produce NUMBER(10) on Oracle backend.
+# Coerce Integer type to produce NUMBER(10) on Oracle backend.
 @compiles(Integer, 'oracle')
 def _compile_integer_oracle(type_, compiler, **kw):
     return 'NUMBER(10)'
+
+
+# Coerce DateTime type to produce TIMESTAMP on Oracle backend.
+@compiles(DateTime, 'oracle')
+def _compile_datetime_oracle(type_, compiler, **kw):
+    return compiler.visit_TIMESTAMP(type_, **kw)
 
 
 # Coerce String type without length to produce VARCHAR2(255) on Oracle.
@@ -40,6 +46,18 @@ def _compile_string_mysql(type_, compiler, **kw):
         type_.length = 255
     visit_attr = 'visit_{0}'.format(type_.__visit_name__)
     return getattr(compiler, visit_attr)(type_, **kw)
+
+
+# Coerce DateTime type to produce DATETIME2 on MSSQL backend.
+@compiles(DateTime, 'mssql')
+def _compile_datetime_mssql(type_, compiler, **kw):
+    return compiler.visit_DATETIME2(type_, **kw)
+
+
+# Coerce Date type to produce DATETIME2 on MSSQL backend.
+@compiles(Date, 'mssql')
+def _compile_datetime_mssql(type_, compiler, **kw):
+    return compiler.visit_DATETIME2(type_, **kw)
 
 
 # Add DEFERRABLE INITIALLY DEFERRED to Oracle constraints.
