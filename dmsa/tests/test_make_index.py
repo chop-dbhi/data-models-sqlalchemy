@@ -13,4 +13,4 @@ def test_name():
 def test_fields():
     index_json = {'name': 'test_index', 'fields': ['id']}
     index = make_index(index_json)
-    eq_(index.expressions, ('id',))
+    eq_(index.expressions[0], 'id')
