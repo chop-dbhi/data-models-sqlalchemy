@@ -18,9 +18,9 @@ resource "aws_security_group" "web_public" {
   }
 
   tags {
-    Name        = "${var.workgroup}-${var.project}-web_public"
-    Workgroup   = "${var.workgroup}"
-    Project     = "${var.project}"
+    Name      = "${var.workgroup}-${var.project}-web_public"
+    Workgroup = "${var.workgroup}"
+    Project   = "${var.project}"
   }
 }
 
@@ -44,9 +44,9 @@ resource "aws_security_group" "ssh_access" {
   }
 
   tags {
-    Name        = "${var.workgroup}-${var.project}-ssh_access"
-    Workgroup   = "${var.workgroup}"
-    Project     = "${var.project}"
+    Name      = "${var.workgroup}-${var.project}-ssh_access"
+    Workgroup = "${var.workgroup}"
+    Project   = "${var.project}"
   }
 }
 
@@ -63,16 +63,15 @@ resource "aws_security_group" "internal" {
   }
 
   egress {
-    from_port = "0"
-    to_port   = "0"
-    protocol  = "-1"
+    from_port   = "0"
+    to_port     = "0"
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags {
-    Name        = "${var.workgroup}-${var.project}-internal"
-    Workgroup   = "${var.workgroup}"
-    Project     = "${var.project}"
+    Name      = "${var.workgroup}-${var.project}-internal"
+    Workgroup = "${var.workgroup}"
+    Project   = "${var.project}"
   }
 }
-

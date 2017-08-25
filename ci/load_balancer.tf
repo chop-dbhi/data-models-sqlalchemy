@@ -8,9 +8,15 @@ resource "aws_alb" "public" {
   security_groups = ["${aws_security_group.web_public.id}", "${aws_security_group.internal.id}"]
 
   tags {
-    Name        = "${var.workgroup}-${var.project}-public"
-    Workgroup   = "${var.workgroup}"
-    Project     = "${var.project}"
+    Name      = "${var.workgroup}-${var.project}-public"
+    Workgroup = "${var.workgroup}"
+    Project   = "${var.project}"
+  }
+
+  lifecycle {
+    # Destruction of the load balancer would break the CNAME configuration,
+    # which would require manual intervention to restore.
+    prevent_destroy = "true"
   }
 }
 
@@ -26,9 +32,9 @@ resource "aws_alb_target_group" "public" {
   }
 
   tags {
-    Name        = "${var.workgroup}-${var.project}-public"
-    Workgroup   = "${var.workgroup}"
-    Project     = "${var.project}"
+    Name      = "${var.workgroup}-${var.project}-public"
+    Workgroup = "${var.workgroup}"
+    Project   = "${var.project}"
   }
 }
 

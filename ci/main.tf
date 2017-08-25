@@ -36,9 +36,9 @@ resource "aws_instance" "default" {
   user_data                   = "${file("init.sh")}"
 
   tags {
-    Name        = "${var.workgroup}-${var.project}"
-    Workgroup   = "${var.workgroup}"
-    Project     = "${var.project}"
+    Name      = "${var.workgroup}-${var.project}"
+    Workgroup = "${var.workgroup}"
+    Project   = "${var.project}"
   }
 }
 
