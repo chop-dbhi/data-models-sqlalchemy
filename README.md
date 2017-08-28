@@ -208,3 +208,21 @@ Run:
 ```sh
 dmsa serve                              # Uses Flask defaults of 127.0.0.1:5000
 ```
+
+## Deployment
+
+Build a docker image from the current code with a `new` tag, log in to the Docker Hub, and push the new image.
+
+```
+docker build -t "dbhi/data-models-sqlalchemy:new" .
+docker login
+docker push "dbhi/data-models-sqlalchemy:new"
+```
+
+Deploy the service to AWS. You will be prompted for the docker image tag you want to deploy.
+
+```
+cd ci
+terraform plan
+terraform apply
+```

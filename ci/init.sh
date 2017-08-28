@@ -4,5 +4,5 @@
 stop ecs || true && mv /etc/init/ecs.conf /etc/init/ecs.conf.disabled
 
 # Pull and run the service.
-docker pull dbhi/data-models-sqlalchemy:latest
-docker run -d -p "80:80" dbhi/data-models-sqlalchemy
+docker pull dbhi/data-models-sqlalchemy:${tag}
+docker run -d -p "80:80" dbhi/data-models-sqlalchemy:${tag}

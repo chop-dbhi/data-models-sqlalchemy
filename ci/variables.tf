@@ -1,3 +1,7 @@
+variable "image_tag" {
+  description = "Tag of the docker image to deploy."
+}
+
 variable "profile" {
   description = "AWS credentials profile name."
   default     = "saml"
