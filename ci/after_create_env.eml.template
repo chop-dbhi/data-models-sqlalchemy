@@ -1,3 +1,0 @@
-The DBHi TiU continuous integration and deployment workflow for <APP_NAME> has finished creating a new AWS ElasticBeanstalk environment named <AWS_ENV_NAME>. It should have been automatically tagged with the appropriate billing codes.
-
-The current health of the environment is <AWSHEALTH>.
