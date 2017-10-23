@@ -6,7 +6,7 @@ from dmsa.utility import get_template_models
 SERVICE = os.environ.get('DMSA_TEST_SERVICE',
                          'https://data-models-service.research.chop.edu/')
 
-app = service.build_app(SERVICE)
+app = service.build_app(SERVICE, refresh_interval=None)
 app.config['TESTING'] = True
 test_app = app.test_client()
 

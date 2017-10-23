@@ -29,6 +29,13 @@ Options:
   --service=URL        Base URL of the data models service to use
                        [default: https://data-models-service.research.chop.edu/].
 
+Environment Variables
+
+  `dmsa serve` accepts a Github webhook secret via the `DMSA_WEBHOOK_SECRET`
+  environment variable. The chop-dbhi/data-models repo can be configured to
+  issue a push-event webhook request to indicate that the dmsa service should
+  re-cache data from the data models service.
+
 """  # noqa
 
 
