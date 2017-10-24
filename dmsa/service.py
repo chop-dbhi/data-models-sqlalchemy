@@ -6,18 +6,21 @@ from github_webhook import Webhook
 from dmsa import ddl, erd, __version__
 from dmsa.utility import (get_template_models, get_service_version,
                           get_template_dialects, ReverseProxied, dmsa_version)
+import dmsa.models
 
 PERIODIC_REFRESH_DELAY = 3600  # seconds
 POST_HOOK_REFRESH_DELAY = 10
 
 app = Flask('dmsa')
 app.wsgi_app = ReverseProxied(app.wsgi_app)
+dmsa.models.set_cache_dir(app.instance_path)
 
 hmac_key = os.environ.get('DMSA_WEBHOOK_SECRET')
 webhook = Webhook(app, endpoint='/refresh', secret=hmac_key)
 
 
 def refresh_data_models_template():
+    app.config['service_version'] = get_service_version(app.config['service'])
     app.config['models'] = get_template_models(app.config['service'],
                                                force_refresh=True)
 
@@ -49,7 +52,6 @@ def schedule_data_models_template_refresh(delay, reschedule=False):
 
 @webhook.hook(event_type='issues')
 def webhook_route(data):
-    print 'webhook'
     schedule_data_models_template_refresh(delay=POST_HOOK_REFRESH_DELAY)
 
 
@@ -161,7 +163,7 @@ def create_erd_route(model, version):
     ext = request.args.get('format') or 'png'
 
     filename = '{0}_{1}_dms_{2}_dmsa_{3}.{4}'.format(
-        model, version, get_service_version(app.config['service']), __version__,
+        model, version, app.config['service_version'], __version__,
         ext)
     filepath = '/'.join([app.instance_path, filename])
 
@@ -251,8 +253,9 @@ def build_app(service, refresh_interval=PERIODIC_REFRESH_DELAY):
     app.config['service'] = service
     app.config['dialects'] = get_template_dialects()
 
-    # Initialize the model summary in app.config['models'] from the service
-    # and refresh it periodically.
+    # Initialize the model summary in app.config['models'] and
+    # service version in app.config['service_version'] from the service
+    # and refresh periodically.
     refresh_data_models_template_and_reschedule(delay=refresh_interval)
 
     return app
