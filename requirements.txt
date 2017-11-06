@@ -1,4 +1,6 @@
 SQLAlchemy==1.0.5
 Flask==0.10.1
 docopt==0.6.2
+github_webhook==1.0.2
 requests==2.7.0
+simpleflock==0.0.3

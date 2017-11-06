@@ -209,20 +209,24 @@ Run:
 dmsa serve                              # Uses Flask defaults of 127.0.0.1:5000
 ```
 
+### Caching data from the data models service
+
+`dmsa` caches model names and versions from the data models service to avoid unnecessary heavy-weight requests. When data models are updated, this cache needs to be refreshed. There are two mechanisms to ensure that a refresh occurs. First, a Github push webhook can be created on the data-models repository used by the data models service. When `dmsa` receives the webhook request to `/refresh`, it refreshes the cache after waiting for 10 seconds to give the data models service a chance to absorb the changes itself. The webhook secret key, if any, can be passed to `dmsa` via the `DMSA_WEBHOOK_SECRET` environment variable.
+
+The second refresh mechanism is a periodic refresh occurring once an hour as a backstop in case the webhook doesn't work or the data models service fails to refresh itself quickly enough.
+
+Both mechanisms use `threading.Timer`, and each process will have 1 or 2 timer threads running (2 after a webhook). Because of this, using `Ctrl-C` (`INT` signal) doesn't work to quit the process in a timely fashion if running on the command line during development. You can stop the process immediately with `kill -TERM <pid>`.
+
+When running under `gunicorn` (as in the Docker container), the master process will kill the workers after 30 seconds when sent an `INT`, `QUIT`, or `TERM` signal.
+
+When running under Docker and the container is stopped, the `gunicorn` processes will all be killed with `SIGKILL` after 10 seconds (or whatever the grace period has been configured as). Ordinarily this is not a great idea, but only the timer threads will be abruptly terminated.
+
+#### Caching notes
+
+The caching is very partial; it could be extended to all requests from the data models service, but it's probably not worth it.
+
+The caching is also not very intelligent in that there is no coordination between the periodic threads and the webhook thread or between the gunicorn processes in order to minimize the number of requests. It would be possible, for instance, to keep track of the data-models repo commit hash being used by the data models service and only refresh the data if that hash has changed.
+
 ## Deployment
 
-Build a docker image from the current code with a `new` tag, log in to the Docker Hub, and push the new image.
-
-```
-docker build -t "dbhi/data-models-sqlalchemy:new" .
-docker login
-docker push "dbhi/data-models-sqlalchemy:new"
-```
-
-Deploy the service to AWS. You will be prompted for the docker image tag you want to deploy.
-
-```
-cd ci
-terraform plan
-terraform apply
-```
+Deployment of the DBHi `data-models-sqlalchemy.research.chop.edu` service is managed via the internal devops/data-models-sqlalchemy repo.

@@ -2,6 +2,7 @@ import requests
 from functools import wraps
 from flask import make_response
 from dmsa import __version__
+from dmsa.models import (get_cached_template_models, set_cached_template_models)
 
 PRETTY_MODELS = {
     'i2b2': 'i2b2',
@@ -45,7 +46,13 @@ def get_models_json(service):
     return r.json()
 
 
-def get_template_models(service):
+def get_template_models(service, force_refresh=False):
+
+    if not force_refresh:
+        models = get_cached_template_models()
+        if models:
+            return models
+
     models = []
     svc_models = get_models_json(service)
 
@@ -75,7 +82,10 @@ def get_template_models(service):
     for model in models:
         model['versions'] = sorted(model['versions'], key=lambda k: k['name'])
 
-    return sorted(models, key=lambda k: k['pretty'].lower())
+    sorted_models = sorted(models, key=lambda k: k['pretty'].lower())
+    set_cached_template_models(sorted_models)
+
+    return sorted_models
 
 
 def get_template_dialects():
