@@ -6,23 +6,22 @@ from github_webhook import Webhook
 from dmsa import ddl, erd, __version__
 from dmsa.utility import (get_template_models, get_service_version,
                           get_template_dialects, ReverseProxied, dmsa_version)
-import dmsa.models
+import dmsa.cache
 
 PERIODIC_REFRESH_DELAY = 3600  # seconds
 POST_HOOK_REFRESH_DELAY = 10
 
 app = Flask('dmsa')
 app.wsgi_app = ReverseProxied(app.wsgi_app)
-dmsa.models.set_cache_dir(app.instance_path)
+dmsa.cache.set_cache_dir(app.instance_path)
 
 hmac_key = os.environ.get('DMSA_WEBHOOK_SECRET')
 webhook = Webhook(app, endpoint='/refresh', secret=hmac_key)
 
 
 def refresh_data_models_template():
-    app.config['service_version'] = get_service_version(app.config['service'])
-    app.config['models'] = get_template_models(app.config['service'],
-                                               force_refresh=True)
+    """Retrieve the data models from the service and cache them"""
+    get_template_models(app.config['service'], force_refresh=True)
 
 
 def refresh_data_models_template_and_reschedule(delay=None):
@@ -50,7 +49,7 @@ def schedule_data_models_template_refresh(delay, reschedule=False):
     t.start()
 
 
-@webhook.hook(event_type='issues')
+@webhook.hook(event_type='push')
 def webhook_route(data):
     schedule_data_models_template_refresh(delay=POST_HOOK_REFRESH_DELAY)
 
@@ -58,14 +57,14 @@ def webhook_route(data):
 @app.route('/')
 @dmsa_version
 def index_route():
-    return render_template('index.html', models=app.config['models'])
+    return render_template('index.html', models=get_template_models(app.config['service']))
 
 
 @app.route('/<model_name>/')
 @dmsa_version
 def model_route(model_name):
 
-    for model in app.config['models']:
+    for model in get_template_models(app.config['service']):
         if model['name'] == model_name:
             break
     else:
@@ -78,7 +77,7 @@ def model_route(model_name):
 @dmsa_version
 def version_route(model_name, version_name):
 
-    for model in app.config['models']:
+    for model in get_template_models(app.config['service']):
         if model['name'] == model_name:
             break
     else:
@@ -163,7 +162,7 @@ def create_erd_route(model, version):
     ext = request.args.get('format') or 'png'
 
     filename = '{0}_{1}_dms_{2}_dmsa_{3}.{4}'.format(
-        model, version, app.config['service_version'], __version__,
+        model, version, get_service_version(app.config['service']), __version__,
         ext)
     filepath = '/'.join([app.instance_path, filename])
 
@@ -253,8 +252,7 @@ def build_app(service, refresh_interval=PERIODIC_REFRESH_DELAY):
     app.config['service'] = service
     app.config['dialects'] = get_template_dialects()
 
-    # Initialize the model summary in app.config['models'] and
-    # service version in app.config['service_version'] from the service
+    # Cache the data models from the data models service
     # and refresh periodically.
     refresh_data_models_template_and_reschedule(delay=refresh_interval)
 
