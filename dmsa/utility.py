@@ -2,7 +2,7 @@ import requests
 from functools import wraps
 from flask import make_response
 from dmsa import __version__
-from dmsa.models import (get_cached_template_models, set_cached_template_models)
+from dmsa.cache import (get_cache, set_cache)
 
 PRETTY_MODELS = {
     'i2b2': 'i2b2',
@@ -35,26 +35,36 @@ def get_model_json(model, model_version, service):
 
 
 def get_service_version(service):
-    """Retrieve version of the specified service."""
-    r = requests.get(service)
-    return r.headers['User-Agent'].split(' ')[0].split('/')[1]
+    """Retrieve version of the specified service from the cache or service."""
+    obj = get_cache()
+    if obj:
+        return obj['service_version']
+    # Not in cache, so let's get everything from the service and cache it
+    get_template_models(service, force_refresh=True)
+    # ... and try again
+    return get_cache()['service_version']
 
 
 def get_models_json(service):
-    """Retrieve the models and their versions from the service."""
+    """Get the models/versions from the service along with service version."""
     r = requests.get(service + 'models?format=json')
-    return r.json()
+    service_version = r.headers['User-Agent'].split(' ')[0].split('/')[1]
+    return r.json(), service_version
 
 
 def get_template_models(service, force_refresh=False):
+    """ Get the template models from the cache or service.
 
+    The service version is also cached at the same time and can be obtained
+    using get_service_version, above.
+    """
     if not force_refresh:
-        models = get_cached_template_models()
-        if models:
-            return models
+        obj = get_cache()
+        if obj:
+            return obj['sorted_models']
 
     models = []
-    svc_models = get_models_json(service)
+    svc_models, service_version = get_models_json(service)
 
     for svc_model in svc_models:
         for model in models:
@@ -83,7 +93,8 @@ def get_template_models(service, force_refresh=False):
         model['versions'] = sorted(model['versions'], key=lambda k: k['name'])
 
     sorted_models = sorted(models, key=lambda k: k['pretty'].lower())
-    set_cached_template_models(sorted_models)
+    set_cache({'sorted_models': sorted_models,
+               'service_version': service_version})
 
     return sorted_models
 
@@ -122,7 +133,7 @@ def dmsa_version(f):
 
 
 class ReverseProxied(object):
-    '''Wrap the application in this middleware and configure the
+    """Wrap the application in this middleware and configure the
     front-end server to add these headers, to let you quietly bind
     this to a URL other than / and to an HTTP scheme that is
     different than what is used locally.
@@ -137,7 +148,7 @@ class ReverseProxied(object):
         }
 
     :param app: the WSGI application
-    '''
+    """
     def __init__(self, app):
         self.app = app
 
