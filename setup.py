@@ -1,14 +1,17 @@
+import os
 import sys
 from setuptools import setup, find_packages
 from dmsa import __version__
 
+base_dir = os.path.dirname(__file__)
+
 if sys.version_info < (2, 7) or sys.version_info > (3, 0):
     raise EnvironmentError('Python 2.7.x is required')
 
-with open('README.md', 'r') as f:
+with open(os.path.join(base_dir, 'README.md'), 'r') as f:
     long_description = f.read()
 
-with open('requirements.txt') as f:
+with open(os.path.join(base_dir, 'requirements.txt')) as f:
     install_requires = f.readlines()
 
 kwargs = {
