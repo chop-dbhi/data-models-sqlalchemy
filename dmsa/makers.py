@@ -19,7 +19,7 @@ def get_datatype_map():
         'clob': Text,
         'boolean': Boolean,
         'blob': LargeBinary,
-        'biginteger': BigInt
+        'biginteger': BigInteger
     }
 
 
