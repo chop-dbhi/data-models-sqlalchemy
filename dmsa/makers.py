@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 def get_datatype_map():
     from sqlalchemy import (Integer, Numeric, Float, String, Date,
-                            DateTime, Time, Text, Boolean, LargeBinary)
+                            DateTime, Time, Text, Boolean, LargeBinary,BigInteger)
 
     return {
         'integer': Integer,
@@ -18,7 +18,8 @@ def get_datatype_map():
         'text': Text,
         'clob': Text,
         'boolean': Boolean,
-        'blob': LargeBinary
+        'blob': LargeBinary,
+        'biginteger': BigInteger
     }
 
 
