@@ -1,4 +1,4 @@
-FROM python:2.7
+FROM python:2.7.14
 
 MAINTAINER Aaron Browne <brownea@email.chop.edu>
 
