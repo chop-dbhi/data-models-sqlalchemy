@@ -1,5 +1,5 @@
 from sqlalchemy import (create_engine, MetaData, Table, Column,
-                        Integer, Numeric, String, Date, DateTime, text,BigInteger)
+                        Integer, Numeric, String, Date, DateTime, text)
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.schema import (CreateTable, AddConstraint, CreateIndex,
                                DropTable, DropConstraint, DropIndex,
