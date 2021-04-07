@@ -30,7 +30,7 @@ RUN apt-get -qq update && \
 # Finally install Python dependencies.
 COPY requirements.txt /app/
 RUN pip install \
-    cx-Oracle==5.1.3 \
+    "cx-Oracle>=5.2,<=5.3" \
     ERAlchemy==0.0.28 \
     gunicorn==19.3.0 \
     MySQL-python==1.2.5 \
